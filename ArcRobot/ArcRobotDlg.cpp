@@ -19,6 +19,7 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
+
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
@@ -26,6 +27,7 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+
 
 // 实现
 protected:
@@ -65,6 +67,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &CArcRobotDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BUTTON1, &CArcRobotDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -161,4 +164,13 @@ void CArcRobotDlg::OnBnClickedOk()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	CDialogEx::OnOK();
+}
+
+
+void CArcRobotDlg::OnBnClickedButton1()
+{
+	
+	ABBSocket abbsoc;
+	abbsoc.SocketMain();
+	// TODO: 在此添加控件通知处理程序代码
 }

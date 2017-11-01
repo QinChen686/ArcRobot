@@ -189,6 +189,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ABBSocketCommunication.h" />
     <ClInclude Include="ArcRobot.h" />
     <ClInclude Include="ArcRobotDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ABBSocketCommunication.cpp" />
     <ClCompile Include="ArcRobot.cpp" />
     <ClCompile Include="ArcRobotDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
