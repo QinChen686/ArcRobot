@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "ABBSocketCommunication.h"
+#include "Resource.h"
+
 int ABBSocket::SocketMain()
 {
+
 	const int BUF_SIZE = 600;
 	WSADATA         wsd;            //WSADATA变量  
 	SOCKET          sServer;        //服务器套接字  
@@ -27,6 +30,7 @@ int ABBSocket::SocketMain()
 	sServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (INVALID_SOCKET == sServer)
 	{
+
 		cout << "socket failed!" << endl;
 		WSACleanup();//释放套接字资源;  
 		return  -1;
@@ -60,7 +64,7 @@ int ABBSocket::SocketMain()
 	{
 		cout << "listen failed!" << endl;
 		closesocket(sServer);   //关闭套接字  
-		WSACleanup();           //释放套接字资源;  
+		WSACleanup();           //释放套接字资源;
 		return -1;
 	}
 

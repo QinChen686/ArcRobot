@@ -36,6 +36,9 @@
     <ClInclude Include="ABBSocketCommunication.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ProcessLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArcRobot.cpp">

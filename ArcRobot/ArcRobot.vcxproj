@@ -192,6 +192,7 @@
     <ClInclude Include="ABBSocketCommunication.h" />
     <ClInclude Include="ArcRobot.h" />
     <ClInclude Include="ArcRobotDlg.h" />
+    <ClInclude Include="ProcessLog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

@@ -2,6 +2,7 @@
 // ArcRobotDlg.cpp : 实现文件
 //
 
+#include <iostream>
 #include "stdafx.h"
 #include "ArcRobot.h"
 #include "ArcRobotDlg.h"
@@ -68,6 +69,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &CArcRobotDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON1, &CArcRobotDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CArcRobotDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -169,8 +171,26 @@ void CArcRobotDlg::OnBnClickedOk()
 
 void CArcRobotDlg::OnBnClickedButton1()
 {
-	
+	// TODO: 在此添加控件通知处理程序代码
 	ABBSocket abbsoc;
 	abbsoc.SocketMain();
-	// TODO: 在此添加控件通知处理程序代码
+	
 }
+
+static int i;
+
+void CArcRobotDlg::OnBnClickedButton2()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
+	CString str,a;
+	GetDlgItem(IDC_EDIT2)->GetWindowText(str);
+	str += "test display";
+	a.Format(_T("%d"), i++);
+	str += a;
+	str += "\r\n";
+	GetDlgItem(IDC_EDIT2)->SetWindowText(str);
+	CEdit*p = (CEdit*)GetDlgItem(IDC_EDIT2); //定义一个指向编辑框的句柄的指针
+	p->LineScroll(p->GetLineCount()); //滚动条置底
+}
+

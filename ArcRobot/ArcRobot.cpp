@@ -6,6 +6,7 @@
 #include "ArcRobot.h"
 #include "ArcRobotDlg.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -109,4 +110,5 @@ BOOL CArcRobotApp::InitInstance()
 	//  而不是启动应用程序的消息泵。
 	return FALSE;
 }
+
 
