@@ -226,8 +226,8 @@ void CArcRobotDlg::OnBnClickedButton3()
 	char* pos;
 	CString cpos;
 	pos = abbsoc.GetCurPos();
-	cout << pos << endl;
-	cpos.Format(_T("%s"), CStringW(pos));
+	//cout << pos << endl;
+	cpos.Format(_T("%s"), CStringW(pos));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 	cout << cpos << endl;
 	addtext(IDC_EDIT1,cpos);
 
