@@ -39,6 +39,9 @@
     <ClInclude Include="ProcessLog.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="mathClass.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArcRobot.cpp">
@@ -51,6 +54,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ABBSocketCommunication.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="mathClass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,6 +5,8 @@
 #pragma once
 
 #include "ABBSocketCommunication.h"
+#include "mathClass.h"
+
 // CArcRobotDlg ¶Ô»°¿ò
 class CArcRobotDlg : public CDialogEx
 {
@@ -39,8 +41,10 @@ public:
 private:
 	int addtext(int nID, CString str);
 	ABBSocket abbsoc;
+	mathfun mathc;
 public:
 	afx_msg void OnBnClickedButton3();
+	afx_msg void OnBnClickedButton5();
 };
 
 

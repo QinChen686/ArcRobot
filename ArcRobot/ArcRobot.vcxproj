@@ -192,6 +192,7 @@
     <ClInclude Include="ABBSocketCommunication.h" />
     <ClInclude Include="ArcRobot.h" />
     <ClInclude Include="ArcRobotDlg.h" />
+    <ClInclude Include="mathClass.h" />
     <ClInclude Include="ProcessLog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="ABBSocketCommunication.cpp" />
     <ClCompile Include="ArcRobot.cpp" />
     <ClCompile Include="ArcRobotDlg.cpp" />
+    <ClCompile Include="mathClass.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
