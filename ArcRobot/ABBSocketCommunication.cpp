@@ -1,19 +1,11 @@
 #include "stdafx.h"
 #include "ABBSocketCommunication.h"
 #include "Resource.h"
+using namespace std;
 
-int ABBSocket::SocketMain()
+int ABBSocket::SocketListen()
 {
-
-	const int BUF_SIZE = 600;
-	WSADATA         wsd;            //WSADATA变量  
-	SOCKET          sServer;        //服务器套接字  
-	SOCKET          sClient;        //客户端套接字  
-	SOCKADDR_IN     addrServ;;      //服务器地址  
-	char            buf[BUF_SIZE];  //接收数据缓冲区  
-	char            sendBuf[BUF_SIZE];//返回给客户端得数据  
-	int             retVal;         //返回值  
-									//初始化套结字动态库  
+	//初始化套结字动态库  
 	if (WSAStartup(MAKEWORD(2, 2), &wsd) != 0)
 	{
 		cout << "WSAStartup failed!" << endl;
@@ -68,6 +60,11 @@ int ABBSocket::SocketMain()
 		return -1;
 	}
 
+}
+
+
+int ABBSocket::SocketAccept()
+{
 	//接受客户端请求 
 	//int accept(int sockfd, struct sockaddr *addr, int *addrlen);
 	// sockfd是被监听的服务器socket描述符，addr通常是一个指向sockaddr_in变量的指针，该变量用来存放提出连接请求的客户端地址；
@@ -84,51 +81,43 @@ int ABBSocket::SocketMain()
 		WSACleanup();           //释放套接字资源;  
 		return -1;
 	}
-	/*vector<vector<double>> targetPosvec = { { 1131.38, 173.02, 90.00 }, { 1138.58, -126.98, 77.49 },
-	{740.74, -126.98, 90.00},{726.72, 187.09, 84.18},
-	{943.61, 0.00, 1152.50} };*/
-	/*vector<vector<char *>> targetPos = {
-	{"[1131.38, 173.02, 90.00]", "[0.0918634, -0.942962, -0.296062, -0.12137]",
-	"[0, -2, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]"},
-	{"[1138.58, -126.98, 77.49]", "[0.0918633, -0.942962, -0.296062, -0.12137]",
-	"[-1, -2, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]"},
-	{"[740.74, -126.98, 90.00]", "[0.0918632, -0.942962, -0.296063, -0.12137]",
-	"[-1, -1, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]"},
-	{"[726.72, 187.09, 84.18]", "[0.0918633, -0.942962, -0.296062, -0.12137]",
-	"[0, -1, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]"},
-	{"[943.61, 0.00, 1152.50]", "[0.5, -1.19121E-08, 0.866025, -6.87746E-09]",
-	"[0, 0, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" }
-	};*/
-	vector<vector<char *>> targetPos = {
-		{ "[757.05,-839.97,1148.20]","[0.0300251,0.513015,-0.81292,0.274]","[-1,-1,-2,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" },
-		{ "[757.05,-1010.73,1148.20]","[0.0300251,0.513015,-0.81292,0.274]","[-1,-1,-2,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" },
-		{ "[363.58, -1074.88, 945.65]","[0.0300252, 0.513015, -0.812919, 0.274]", "[-1, 0, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-		{ "[363.58, -704.45, 934.48]", "[0.0300252, 0.513015, -0.812919, 0.274]", "[-1, -1, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-		{ "[943.61, 0.00, 1152.50]", "[0.5, -1.19121E-08, 0.866025, -6.87746E-09]", "[0, 0, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" }
-	};
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	return 0;
+}
 
-	/*	vector<vector<char *>> targetPos = {
-	{ "[1131.38, 173.02, 90.00]", "[0.0918634, -0.942962, -0.296062, -0.12137]",
-	"[0, -2, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-	{ "[1138.58, -126.98, 77.49]", "[0.0918633, -0.942962, -0.296062, -0.12137]",
-	"[0, 0, 0, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-	{ "[740.74, -126.98, 90.00]", "[0.0918632, -0.942962, -0.296063, -0.12137]",
-	"[0, 0, 0, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-	{ "[726.72, 187.09, 84.18]", "[0.0918633, -0.942962, -0.296062, -0.12137]",
-	"[0, 0, 0, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
-	{ "[943.61, 0.00, 1152.50]", "[0.5, -1.19121E-08, 0.866025, -6.87746E-09]",
-	"[0, 0, 0, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" }
-	};
-	*/
+
+int ABBSocket::SocketSend(char* Data)
+{
+	sprintf_s(sendBuf, Data);
+	send(sClient, sendBuf, strlen(sendBuf), 0);
+	return 1;
+}
+
+char* ABBSocket::GetCurPos()
+{
+
+	SocketSend("CurPos");
+	recv(sClient, buf, BUF_SIZE, 0);
+	//cout << buf << endl;
+	return buf;
+	
+
+}
+
+
+//
+int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos) 
+{
+	
+
 	for (int i = 0; i != targetPos.size(); i++)
 	{
 		//接收客户端数据  
-		ZeroMemory(buf, BUF_SIZE);//清空内存
-								  //原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
-								  //recive from :sockfd是接受数据的socket描述符；
-								  //buf 是存放接收数据的缓冲区；len是缓冲的长度。
-								  //flags也被置为0。
-								  //recv()返回实际上接收的字节数，或当出现错误时，返回 - 1并置相应的errno值。
+	    //原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
+		//recive from :sockfd是接受数据的socket描述符；
+		//buf 是存放接收数据的缓冲区；len是缓冲的长度。
+		//flags也被置为0。
+		//recv()返回实际上接收的字节数，或当出现错误时，返回 - 1并置相应的errno值。
 		retVal = recv(sClient, buf, BUF_SIZE, 0);//接收函数
 												 // int recv(int sockfd,void *buf,int len,unsigned int flags); 
 
@@ -181,7 +170,15 @@ int ABBSocket::SocketMain()
 		//send()函数返回实际上发送出的字节数，可能会少于你希望发送的数据。所以需要对send()的返回值进行测量。
 		//当send()返回值与len不匹配时，应该对这种情况进行处理。
 
+
 	}
+	return 0;
+}
+
+
+
+int ABBSocket::SocketStop()
+{
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	retVal = recv(sClient, buf, BUF_SIZE, 0);//接收函数
 	sprintf_s(sendBuf, "Stop");

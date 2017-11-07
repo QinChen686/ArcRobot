@@ -70,6 +70,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CArcRobotDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON1, &CArcRobotDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CArcRobotDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CArcRobotDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -104,7 +105,7 @@ BOOL CArcRobotDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	ShowWindow(SW_MAXIMIZE);
+	ShowWindow(SW_SHOWNORMAL);
 
 	// TODO: 在此添加额外的初始化代码
 
@@ -172,25 +173,62 @@ void CArcRobotDlg::OnBnClickedOk()
 void CArcRobotDlg::OnBnClickedButton1()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	ABBSocket abbsoc;
-	abbsoc.SocketMain();
+	//ABBSocket abbsoc;
+	abbsoc.SocketListen();
+	addtext(IDC_EDIT2, L"start Listen!");
+	abbsoc.SocketAccept();
+	addtext(IDC_EDIT2, L"aceepted a controller !");
+
+	/*vector<vector<char *>> targetPos = {
+		{ "[757.05,-839.97,1148.20]","[0.0300251,0.513015,-0.81292,0.274]","[-1,-1,-2,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" },
+		{ "[757.05,-1010.73,1148.20]","[0.0300251,0.513015,-0.81292,0.274]","[-1,-1,-2,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" },
+		{ "[363.58, -1074.88, 945.65]","[0.0300252, 0.513015, -0.812919, 0.274]", "[-1, 0, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
+		{ "[363.58, -704.45, 934.48]", "[0.0300252, 0.513015, -0.812919, 0.274]", "[-1, -1, -2, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" },
+		{ "[943.61, 0.00, 1152.50]", "[0.5, -1.19121E-08, 0.866025, -6.87746E-09]", "[0, 0, -1, 0]", "[9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]" }
+	};
+	abbsoc.SocketSendPos(targetPos);
+	addtext(IDC_EDIT2, L"send over !");*/
 	
 }
 
-static int i;
+int CArcRobotDlg::addtext(int nID, CString str)
+{
+	CString strOrigin;
+	GetDlgItem(nID)->GetWindowText(strOrigin);
+	strOrigin += str;
+	strOrigin += "\r\n";
+	GetDlgItem(nID)->SetWindowText(strOrigin);
+	CEdit*p = (CEdit*)GetDlgItem(nID); //定义一个指向编辑框的句柄的指针
+	p->LineScroll(p->GetLineCount()); //滚动条置底
+	return 0;
+}
 
 void CArcRobotDlg::OnBnClickedButton2()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
-	CString str,a;
+	CString str;
 	GetDlgItem(IDC_EDIT2)->GetWindowText(str);
 	str += "test display";
-	a.Format(_T("%d"), i++);
-	str += a;
 	str += "\r\n";
 	GetDlgItem(IDC_EDIT2)->SetWindowText(str);
 	CEdit*p = (CEdit*)GetDlgItem(IDC_EDIT2); //定义一个指向编辑框的句柄的指针
 	p->LineScroll(p->GetLineCount()); //滚动条置底
 }
 
+
+
+void CArcRobotDlg::OnBnClickedButton3()
+{
+
+	// TODO: 在此添加控件通知处理程序代码
+
+	char* pos;
+	CString cpos;
+	pos = abbsoc.GetCurPos();
+	cout << pos << endl;
+	cpos.Format(_T("%s"), CStringW(pos));
+	cout << cpos << endl;
+	addtext(IDC_EDIT1,cpos);
+
+}

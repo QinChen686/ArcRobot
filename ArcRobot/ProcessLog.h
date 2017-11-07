@@ -26,8 +26,6 @@ public:
 
 		FILE* fpout;
 		freopen_s(&fpout, "out.log", "w", stdout);
-		cout << "打开控制台成功" << endl;
-		cout << "打开控制台成功" << endl;
 
 	}
 

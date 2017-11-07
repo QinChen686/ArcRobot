@@ -11,6 +11,7 @@ class CArcRobotDlg : public CDialogEx
 // 构造
 public:
 	CArcRobotDlg(CWnd* pParent = NULL);	// 标准构造函数
+	
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
@@ -35,6 +36,11 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
+private:
+	int addtext(int nID, CString str);
+	ABBSocket abbsoc;
+public:
+	afx_msg void OnBnClickedButton3();
 };
 
 
