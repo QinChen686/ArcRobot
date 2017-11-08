@@ -192,12 +192,17 @@ void CArcRobotDlg::OnBnClickedButton1()
 	
 }
 
-int CArcRobotDlg::addtext(int nID, CString str)
+int CArcRobotDlg::addtext(int nID, CString str, bool addition)
 {
 	CString strOrigin;
-	GetDlgItem(nID)->GetWindowText(strOrigin);
-	strOrigin += str;
-	strOrigin += "\r\n";
+	if (addition)
+	{
+		GetDlgItem(nID)->GetWindowText(strOrigin);
+		strOrigin += str;
+		strOrigin += "\r\n";
+	}
+	else
+		strOrigin += str;
 	GetDlgItem(nID)->SetWindowText(strOrigin);
 	CEdit*p = (CEdit*)GetDlgItem(nID); //定义一个指向编辑框的句柄的指针
 	p->LineScroll(p->GetLineCount()); //滚动条置底
@@ -238,9 +243,9 @@ void CArcRobotDlg::OnBnClickedButton3()
 
 	for (int i = 0; i != 7; i++)
 	{
-		cpos.Format(_T("%.3lf"), posVec[i]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+		cpos.Format(_T("%.5lf"), posVec[i]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 		//cout << cpos << endl;
-		addtext(IDC_EDIT3+i,cpos);
+		addtext(IDC_EDIT3+i,cpos,false);
 	}
 
 

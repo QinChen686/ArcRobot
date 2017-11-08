@@ -39,7 +39,7 @@ public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
 private:
-	int addtext(int nID, CString str);
+	int addtext(int nID, CString str, bool addition=true);
 	ABBSocket abbsoc;
 	mathfun mathc;
 public:

@@ -1,0 +1,47 @@
+MODULE ArcProgram
+    VAR socketdev socket1;
+    VAR string CMDString;
+    VAR string PosString;
+    VAR num retry_no:=0;
+
+    PROC main()
+        SocketCreate socket1;
+        SocketConnect socket1,"192.168.56.1",4999,\Time:=2;
+
+        WHILE TRUE DO
+            SocketReceive socket1,\Str:=CMDString;
+            cmdExplain(CMDString);
+        ENDWHILE
+
+        ERROR
+            IF ERRNO=ERR_SOCK_TIMEOUT THEN
+                IF retry_no<200 THEN
+                    ResetRetryCount;
+                    WaitTime 1;
+                    retry_no:=retry_no+1;
+                    RETRY;
+                ELSE
+                    RAISE ;
+                ENDIF
+            ENDIF
+    ENDPROC
+
+
+    PROC cmdExplain(string cmd)
+        TEST cmd
+        CASE "CurPos":
+            CurPos;
+        DEFAULT:
+            Stop;
+        ENDTEST
+    ENDPROC
+
+    PROC CurPos()
+        VAR robtarget p1;
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        PosString:=ValToStr(p1.trans);
+        PosString:=PosString+ValToStr(p1.rot);
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+ENDMODULE
