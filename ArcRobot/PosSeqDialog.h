@@ -26,4 +26,8 @@ public:
 //	afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
 //	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton12();
+	afx_msg void OnBnClickedButton10();
 };

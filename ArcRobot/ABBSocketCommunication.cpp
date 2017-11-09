@@ -95,7 +95,7 @@ int ABBSocket::SocketSend(char* Data)
 
 char* ABBSocket::GetCurPos()
 {
-
+	ZeroMemory(buf, BUF_SIZE);//Çå¿ÕÄÚ´æ
 	SocketSend("CurPos");
 	recv(sClient, buf, BUF_SIZE, 0);
 	//cout << buf << endl;
