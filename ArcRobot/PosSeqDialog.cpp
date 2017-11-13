@@ -8,6 +8,8 @@
 #include "ArcRobot.h"
 #include "PosSeqDialog.h"
 #include "afxdialogex.h"
+#include <vector>
+using namespace std;
 
 
 // PosSeqDialog 对话框
@@ -37,6 +39,7 @@ ON_BN_CLICKED(IDC_BUTTON1, &PosSeqDialog::OnBnClickedButton1)
 ON_BN_CLICKED(IDC_BUTTON2, &PosSeqDialog::OnBnClickedButton2)
 ON_BN_CLICKED(IDC_BUTTON12, &PosSeqDialog::OnBnClickedButton12)
 ON_BN_CLICKED(IDC_BUTTON10, &PosSeqDialog::OnBnClickedButton10)
+ON_BN_CLICKED(IDC_BUTTON3, &PosSeqDialog::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -193,4 +196,28 @@ void PosSeqDialog::OnBnClickedButton10()
 
 
 	}
+}
+
+
+void PosSeqDialog::OnBnClickedButton3()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int nHeadNum = PosList.GetItemCount();
+	CString data1, data2, data3;
+	char *dataChar1, *dataChar2, *dataChar3;
+	char* dataChar4 = "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]";
+	vector<vector<char *>> targetPos(nHeadNum, vector<char *>(4, nullptr));
+	for (int i = 0; i != nHeadNum; i++)
+	{
+		data1 = PosList.GetItemText(i, 1);
+		data2 = PosList.GetItemText(i, 2);
+		data3 = PosList.GetItemText(i, 3);
+		USES_CONVERSION;
+		targetPos[i][0] = T2A(data1);
+		targetPos[i][1] = T2A(data2);
+		targetPos[i][2] = T2A(data3);
+		targetPos[i][3] = dataChar4;
+	}
+	abbsoc.SocketSend("RecPos");
+	abbsoc.SocketSendPos(targetPos);
 }

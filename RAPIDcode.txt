@@ -3,6 +3,17 @@ MODULE ArcProgram
     VAR string CMDString;
     VAR string PosString;
     VAR num retry_no:=0;
+    VAR string flagString;
+    VAR string tansString;
+    VAR string rotString;
+    VAR string robconfString;
+    VAR string extaxString;
+    VAR robtarget target_POS;
+    VAR pos xyzPos;
+    VAR bool convertOk1;
+    VAR bool convertOk2;
+    VAR bool convertOk3;
+    VAR bool convertOk4;
 
     PROC main()
         SocketCreate socket1;
@@ -31,6 +42,8 @@ MODULE ArcProgram
         TEST cmd
         CASE "CurPos":
             CurPos;
+        CASE "RecPos":
+            RecPos;
         DEFAULT:
             Stop;
         ENDTEST
@@ -42,6 +55,40 @@ MODULE ArcProgram
         PosString:=ValToStr(p1.trans);
         PosString:=PosString+ValToStr(p1.rot);
         SocketSend socket1\Str:=PosString;
+    ENDPROC
+    
+    PROC RecPos()
+        WHILE TRUE DO
+            SocketSend socket1\Str:="ready";
+            SocketReceive socket1\Str:=flagString,\Time:=5;
+            SocketSend socket1\Str:="flagString received";
+            IF flagString="Start" then
+                SocketReceive socket1\Str:=tansString;
+                SocketSend socket1\Str:="tansString received";
+                SocketReceive socket1\Str:=rotString;
+                SocketSend socket1\Str:="rotString received";
+                SocketReceive socket1\Str:=robconfString;
+                SocketSend socket1\Str:="robconfString received";
+                SocketReceive socket1\Str:=extaxString;
+                SocketSend socket1\Str:="extaxString received";
+                convertOk1:=StrToVal(tansString,target_POS.trans);
+                convertOk2:=StrToVal(rotString,target_POS.rot);
+                convertOk3:=StrToVal(robconfString,target_POS.robconf);
+                convertOk4:=StrToVal(extaxString,target_POS.extax);
+                IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
+                    MoveJ target_POS,v100,z50,tool0;
+                    tansString:="";
+                    rotString:="";
+                    robconfString:="";
+                    extaxString:="";
+                ELSE
+                    Break;
+                ENDIF
+            ConfJ\Off;
+            ELSE
+                Break;
+            ENDIF
+        ENDWHILE
     ENDPROC
 
 ENDMODULE

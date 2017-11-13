@@ -190,3 +190,8 @@ int ABBSocket::SocketStop()
 	WSACleanup();           //释放套接字资源;  
 	return 0;
 }
+
+WSADATA ABBSocket::wsd;            //WSADATA变量  
+SOCKET ABBSocket::sServer;        //服务器套接字  
+SOCKET ABBSocket::sClient;        //客户端套接字  
+SOCKADDR_IN  ABBSocket::addrServ;      //服务器地址 

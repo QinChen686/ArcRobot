@@ -1,5 +1,6 @@
 #pragma once
 #include "afxcmn.h"
+#include "ABBSocketCommunication.h"
 
 
 // PosSeqDialog ¶Ô»°¿ò
@@ -30,4 +31,8 @@ public:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton12();
 	afx_msg void OnBnClickedButton10();
+	afx_msg void OnBnClickedButton3();
+
+private:
+	ABBSocket abbsoc;
 };
