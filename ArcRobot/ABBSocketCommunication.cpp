@@ -108,8 +108,8 @@ char* ABBSocket::GetCurPos()
 //
 int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos) 
 {
-	
-
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	SocketSend("RecPos");
 	for (int i = 0; i != targetPos.size(); i++)
 	{
 		//接收客户端数据  
@@ -129,9 +129,9 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 			WSACleanup();           //释放套接字资源;  
 			return -1;
 		}
-		if (buf[0] == '0')
+		if (buf[0] == '\0')
 			break;
-		cout << buf << endl;
+		cout << "dierci:" << buf <<  endl;
 		//tans data
 
 		sprintf_s(sendBuf, "Start");
@@ -172,6 +172,12 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 
 
 	}
+	recv(sClient, buf, BUF_SIZE, 0);
+	cout << "ready?       " << buf << endl;
+	sprintf_s(sendBuf, "End");
+	send(sClient, sendBuf, strlen(sendBuf), 0);
+	retVal = recv(sClient, buf, BUF_SIZE, 0);
+	cout << "Last: " << buf << endl;
 	return 0;
 }
 

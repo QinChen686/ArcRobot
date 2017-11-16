@@ -24,17 +24,17 @@ MODULE ArcProgram
             cmdExplain(CMDString);
         ENDWHILE
 
-        ERROR
-            IF ERRNO=ERR_SOCK_TIMEOUT THEN
-                IF retry_no<200 THEN
-                    ResetRetryCount;
-                    WaitTime 1;
-                    retry_no:=retry_no+1;
-                    RETRY;
-                ELSE
-                    RAISE ;
-                ENDIF
+    ERROR
+        IF ERRNO=ERR_SOCK_TIMEOUT THEN
+            IF retry_no<200 THEN
+                ResetRetryCount;
+                WaitTime 1;
+                retry_no:=retry_no+1;
+                RETRY;
+            ELSE
+                RAISE ;
             ENDIF
+        ENDIF
     ENDPROC
 
 
@@ -56,38 +56,38 @@ MODULE ArcProgram
         PosString:=PosString+ValToStr(p1.rot);
         SocketSend socket1\Str:=PosString;
     ENDPROC
-    
+
     PROC RecPos()
-        WHILE TRUE DO
-            SocketSend socket1\Str:="ready";
-            SocketReceive socket1\Str:=flagString,\Time:=5;
-            SocketSend socket1\Str:="flagString received";
-            IF flagString="Start" then
-                SocketReceive socket1\Str:=tansString;
-                SocketSend socket1\Str:="tansString received";
-                SocketReceive socket1\Str:=rotString;
-                SocketSend socket1\Str:="rotString received";
-                SocketReceive socket1\Str:=robconfString;
-                SocketSend socket1\Str:="robconfString received";
-                SocketReceive socket1\Str:=extaxString;
-                SocketSend socket1\Str:="extaxString received";
-                convertOk1:=StrToVal(tansString,target_POS.trans);
-                convertOk2:=StrToVal(rotString,target_POS.rot);
-                convertOk3:=StrToVal(robconfString,target_POS.robconf);
-                convertOk4:=StrToVal(extaxString,target_POS.extax);
-                IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
-                    MoveJ target_POS,v100,z50,tool0;
-                    tansString:="";
-                    rotString:="";
-                    robconfString:="";
-                    extaxString:="";
-                ELSE
-                    Break;
-                ENDIF
-            ConfJ\Off;
+        ConfJ\On;
+       SocketSend socket1\Str:="ready";
+       SocketReceive socket1\Str:=flagString,\Time:=5;
+       SocketSend socket1\Str:="flagString received";
+        WHILE flagString="Start" DO
+            SocketReceive socket1\Str:=tansString;
+            SocketSend socket1\Str:="tansString received";
+            SocketReceive socket1\Str:=rotString;
+            SocketSend socket1\Str:="rotString received";
+            SocketReceive socket1\Str:=robconfString;
+            SocketSend socket1\Str:="robconfString received";
+            SocketReceive socket1\Str:=extaxString;
+            SocketSend socket1\Str:="extaxString received";
+            convertOk1:=StrToVal(tansString,target_POS.trans);
+            convertOk2:=StrToVal(rotString,target_POS.rot);
+            convertOk3:=StrToVal(robconfString,target_POS.robconf);
+            convertOk4:=StrToVal(extaxString,target_POS.extax);
+            IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
+                MoveJ target_POS,v100,z50,tool0;
+                tansString:="";
+                rotString:="";
+                robconfString:="";
+                extaxString:="";
             ELSE
                 Break;
             ENDIF
+            ConfJ\Off;
+            SocketSend socket1\Str:="ready";
+            SocketReceive socket1\Str:=flagString,\Time:=5;
+            SocketSend socket1\Str:="flagString received";
         ENDWHILE
     ENDPROC
 

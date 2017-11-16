@@ -218,6 +218,6 @@ void PosSeqDialog::OnBnClickedButton3()
 		targetPos[i][2] = T2A(data3);
 		targetPos[i][3] = dataChar4;
 	}
-	abbsoc.SocketSend("RecPos");
+
 	abbsoc.SocketSendPos(targetPos);
 }
