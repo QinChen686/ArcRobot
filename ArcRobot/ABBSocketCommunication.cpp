@@ -181,7 +181,109 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 	return 0;
 }
 
+int ABBSocket::SocketScan(vector<vector<char *>> targetPos)
+{
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	SocketSend("Scan");
+	for (int i = 0; i != targetPos.size(); i++)
+	{
+		//接收客户端数据  
+		//原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
+		//recive from :sockfd是接受数据的socket描述符；
+		//buf 是存放接收数据的缓冲区；len是缓冲的长度。
+		//flags也被置为0。
+		//recv()返回实际上接收的字节数，或当出现错误时，返回 - 1并置相应的errno值。
+		retVal = recv(sClient, buf, BUF_SIZE, 0);//接收函数
+												 // int recv(int sockfd,void *buf,int len,unsigned int flags); 
 
+		if (SOCKET_ERROR == retVal)
+		{
+			cout << "recv failed!" << endl;
+			closesocket(sServer);   //关闭套接字  
+			closesocket(sClient);   //关闭套接字       
+			WSACleanup();           //释放套接字资源;  
+			return -1;
+		}
+		if (buf[0] == '\0')
+			break;
+		cout << "dierci:" << buf << endl;
+		//tans data
+
+		sprintf_s(sendBuf, "Start");
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+
+		sprintf_s(sendBuf, "%s", targetPos[i][0]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
+		//rot data
+		sprintf_s(sendBuf, "%s", targetPos[i][1]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
+		//robconf data
+		sprintf_s(sendBuf, "%s", targetPos[i][2]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
+		//extax data
+		sprintf_s(sendBuf, "%s", targetPos[i][3]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
+		//sprintf_s(sendBuf,"[%.5f, %.5f, %.5f]", posx, posy, posz);
+
+
+		//int send(int sockfd, const void *msg, int len, int flags);
+		//send to:sockfd是你想用来传输数据的socket描述符，msg是一个指向要发送数据的指针。
+		//len是以字节为单位的数据的长度。flags一般情况下置为0（关于该参数的用法可参照man手册）。
+		//send()函数返回实际上发送出的字节数，可能会少于你希望发送的数据。所以需要对send()的返回值进行测量。
+		//当send()返回值与len不匹配时，应该对这种情况进行处理。
+
+
+	}
+	recv(sClient, buf, BUF_SIZE, 0);
+	cout << "ready?       " << buf << endl;
+	sprintf_s(sendBuf, "End");
+	send(sClient, sendBuf, strlen(sendBuf), 0);
+	retVal = recv(sClient, buf, BUF_SIZE, 0);
+	cout << "Last: " << buf << endl;
+
+
+	//接收位置信息
+	/*
+	int recvTimeout = 2 * 1000;   //2s
+	setsockopt(sClient, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvTimeout, sizeof(int));
+	while (-1 != recv(sClient, buf, BUF_SIZE, 0))
+	{
+		cout << buf << endl;
+		ZeroMemory(buf, BUF_SIZE);//清空内存
+	}
+	*/
+	return 0;
+}
+
+ char* ABBSocket::SocketPosRecv(int* rval)
+{	
+	int recvTimeout = 2 * 1000;   //2s
+	setsockopt(sClient, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvTimeout, sizeof(int));
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	int rVal=recv(sClient, buf, BUF_SIZE, 0);
+	*rval = rVal;
+	return buf;
+}
+
+
+ int ABBSocket::SetToZero()
+ {
+	 SocketSend("ToZero");
+	 return 0;
+ }
 
 int ABBSocket::SocketStop()
 {

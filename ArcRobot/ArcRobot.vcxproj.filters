@@ -45,6 +45,12 @@
     <ClInclude Include="PosSeqDialog.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ScanDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="calibration.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArcRobot.cpp">
@@ -63,6 +69,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="PosSeqDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ScanDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="calibration.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

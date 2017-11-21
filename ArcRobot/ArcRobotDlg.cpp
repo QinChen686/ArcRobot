@@ -8,6 +8,7 @@
 #include "ArcRobotDlg.h"
 #include "afxdialogex.h"
 #include "PosSeqDialog.h"
+#include "ScanDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -74,6 +75,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CArcRobotDlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON5, &CArcRobotDlg::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON9, &CArcRobotDlg::OnBnClickedButton9)
+	ON_BN_CLICKED(IDC_BUTTON7, &CArcRobotDlg::OnBnClickedButton7)
 END_MESSAGE_MAP()
 
 
@@ -258,6 +260,7 @@ void CArcRobotDlg::OnBnClickedButton3()
 void CArcRobotDlg::OnBnClickedButton5()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	abbsoc.SetToZero();
 }
 
 
@@ -268,4 +271,14 @@ void CArcRobotDlg::OnBnClickedButton9()
 	// TODO: 在此添加控件通知处理程序代码
 	PosSeqDialog PSDiolog;
 	PSDiolog.DoModal();
+}
+
+
+
+
+void CArcRobotDlg::OnBnClickedButton7()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	ScanDialog ScanD;
+	ScanD.DoModal();
 }

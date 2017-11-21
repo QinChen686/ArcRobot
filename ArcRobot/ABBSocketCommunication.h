@@ -14,9 +14,12 @@ public:
 	int SocketListen();
 	int SocketAccept();
 	int SocketSendPos(vector<vector<char *>>);
+	int SocketScan(vector<vector<char *>>);
 	int SocketStop();
 	int SocketSend(char* Data);
 	char* GetCurPos();
+	char* SocketPosRecv(int* rval);
+	int SetToZero();
 private:
 
 	static WSADATA         wsd;            //WSADATA±‰¡ø  
