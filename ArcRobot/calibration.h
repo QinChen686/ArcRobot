@@ -55,7 +55,7 @@ public:
 			 TP[i](3, 0) = 0; TP[i](3, 1) = 0; TP[i](3, 2) = 0; TP[i](3, 3) = 1;
 			 abc[i] = TP[i].inverse()*caliData[i].pointPos;
 		 }
-		 MatrixXd M;M = MatrixXd::Ones(3, pointNum);
+		 MatrixXd M = MatrixXd::Ones(3, pointNum);
 		 MatrixXd ABC(3, pointNum);
 		 for (int i = 0; i != pointNum; i++)
 		 {
@@ -66,7 +66,21 @@ public:
 			 ABC(2, i) = abc[i](2);
 		 }
 		
+		 JacobiSVD<Eigen::MatrixXf> svd(M, ComputeThinU | ComputeThinV);
+		 MatrixXd V = svd.matrixV(), U = svd.matrixU();
+		 MatrixXd  S = U.inverse() * M * V.transpose().inverse(); // S = U^-1 * A * VT * -1
+		 MatrixXd T0 = ABC*S;
+		 Vector3d o = T0.block(0, 0, 3, 1);
+		 Vector3d a = T0.block(0, 1, 3, 1);
+		 o = o / o.norm();
+		 a = a / a.norm();
+		 Vector3d n = o.cross(a);
 
+		 T(0, 0) = n(0); T(1, 0) = n(1); T(2, 0) = n(2); T(3, 0) = 0;
+		 T(0, 1) = o(0); T(1, 1) = o(1); T(2, 1) = o(2); T(3, 1) = 0;
+		 T(0, 2) = a(0); T(1, 2) = a(1); T(2, 2) = a(2); T(3, 2) = 0;
+		 T(0, 3) = T0(0,3); T(1, 3) = T0(1, 3); T(2, 3) = T0(2, 3); T(3, 3) = 1;
+		 return 0;
 	}
 	 int rpy2rot(CaliStruct &caliStruct)
 	 {
