@@ -175,7 +175,6 @@ void ScanDialog::OnBnClickedButton2()
 	char* pos;
 	int rval;
 	int i = 0;
-	char splitchar;
 	vector<vector<double>> res(1000,vector<double>(8, 0));
 	pos = abbsoc.SocketPosRecv(&rval);
 	while (rval != -1)

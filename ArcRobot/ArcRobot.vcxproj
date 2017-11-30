@@ -75,6 +75,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>F:\Visual_Studio\VC\include\eigen;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -195,6 +196,7 @@
     <ClInclude Include="ArcRobot.h" />
     <ClInclude Include="ArcRobotDlg.h" />
     <ClInclude Include="calibration.h" />
+    <ClInclude Include="CalibrationDlg.h" />
     <ClInclude Include="mathClass.h" />
     <ClInclude Include="PosSeqDialog.h" />
     <ClInclude Include="ProcessLog.h" />
@@ -208,6 +210,7 @@
     <ClCompile Include="ArcRobot.cpp" />
     <ClCompile Include="ArcRobotDlg.cpp" />
     <ClCompile Include="calibration.cpp" />
+    <ClCompile Include="CalibrationDlg.cpp" />
     <ClCompile Include="mathClass.cpp" />
     <ClCompile Include="PosSeqDialog.cpp" />
     <ClCompile Include="ScanDialog.cpp" />

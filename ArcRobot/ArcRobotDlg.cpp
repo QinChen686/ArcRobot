@@ -9,6 +9,8 @@
 #include "afxdialogex.h"
 #include "PosSeqDialog.h"
 #include "ScanDialog.h"
+#include "Resource.h"
+#include "CalibrationDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -76,6 +78,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON5, &CArcRobotDlg::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON9, &CArcRobotDlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON7, &CArcRobotDlg::OnBnClickedButton7)
+	ON_BN_CLICKED(IDC_BUTTON6, &CArcRobotDlg::OnBnClickedButton6)
 END_MESSAGE_MAP()
 
 
@@ -281,4 +284,12 @@ void CArcRobotDlg::OnBnClickedButton7()
 	// TODO: 在此添加控件通知处理程序代码
 	ScanDialog ScanD;
 	ScanD.DoModal();
+}
+
+
+void CArcRobotDlg::OnBnClickedButton6()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CalibrationDlg calDlg;
+	calDlg.DoModal();
 }
