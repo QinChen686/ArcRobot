@@ -3,6 +3,8 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 #include "calibration.h"
+#include "ABBSocketCommunication.h"
+#include "mathClass.h"
 
 // CalibrationDlg ¶Ô»°¿ò
 
@@ -29,6 +31,11 @@ public:
 
 	CListCtrl clbrtl;
 	Calibration calibration;
+	ABBSocket abbsoc;
+	mathfun mathc;
 	afx_msg void OnBnClickedButton12();
 	afx_msg void OnBnClickedButton13();
+	afx_msg void OnBnClickedButton10();
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton3();
 };

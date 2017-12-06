@@ -290,6 +290,12 @@ void CArcRobotDlg::OnBnClickedButton7()
 void CArcRobotDlg::OnBnClickedButton6()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CalibrationDlg calDlg;
-	calDlg.DoModal();
+	CalibrationDlg* pDlg = new CalibrationDlg(this);
+	// 创建无模式对话框
+	pDlg->Create(IDD_DIALOG3);
+	// 移动窗口到主窗口的中央
+	pDlg->CenterWindow();
+	// 显示更新窗口
+	pDlg->ShowWindow(SW_NORMAL);
+	pDlg->UpdateWindow();
 }

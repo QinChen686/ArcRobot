@@ -104,6 +104,24 @@ char* ABBSocket::GetCurPos()
 
 }
 
+char* ABBSocket::GetPointPos()
+{
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	SocketSend("PointPos");
+	recv(sClient, buf, BUF_SIZE, 0);
+	//cout << buf << endl;
+	return buf;
+}
+
+char* ABBSocket::GetEndPos()
+{
+	ZeroMemory(buf, BUF_SIZE);//清空内存
+	SocketSend("EndPos");
+	recv(sClient, buf, BUF_SIZE, 0);
+	//cout << buf << endl;
+	return buf;
+}
+
 
 //
 int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos) 

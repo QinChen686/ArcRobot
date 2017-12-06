@@ -20,6 +20,8 @@ public:
 	char* GetCurPos();
 	char* SocketPosRecv(int* rval);
 	int SetToZero();
+	char* GetPointPos();
+	char* GetEndPos();
 private:
 
 	static WSADATA         wsd;            //WSADATA±‰¡ø  

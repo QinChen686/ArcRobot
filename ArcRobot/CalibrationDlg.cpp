@@ -32,6 +32,9 @@ BEGIN_MESSAGE_MAP(CalibrationDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CalibrationDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON12, &CalibrationDlg::OnBnClickedButton12)
 	ON_BN_CLICKED(IDC_BUTTON13, &CalibrationDlg::OnBnClickedButton13)
+	ON_BN_CLICKED(IDC_BUTTON10, &CalibrationDlg::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON2, &CalibrationDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CalibrationDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -85,6 +88,30 @@ BOOL CalibrationDlg::OnInitDialog()
 void CalibrationDlg::OnBnClickedButton1()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	char* pos;
+	CString cpos;
+	cout << "test cpos" << endl;
+	pos = abbsoc.GetPointPos();
+	cout << pos << endl;
+	cpos.Format(_T("%s"), CStringW(pos));
+	//cout << posVec[0] << " " << posVec[1] << " " << posVec[2] << " " << posVec[3] << " " << posVec[4] << " " << posVec[5] << " "  << posVec[6] <<endl;	
+
+
+	vector<double> posVec(3, 0);
+	sscanf_s(pos, "[%lf,%lf,%lf]", &posVec[0], &posVec[1], &posVec[2]);
+	cpos.Format(_T("%.5lf"), posVec[0]);
+	GetDlgItem(IDC_EDIT1)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[1]);
+	GetDlgItem(IDC_EDIT11)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[2]);
+	GetDlgItem(IDC_EDIT12)->SetWindowText(cpos);
+
+	//for (int i = 0; i != 7; i++)
+	//{
+	//	cpos.Format(_T("%.5lf"), posVec[i]);
+		//cout << cpos << endl;
+	//	addtext(IDC_EDIT3 + i, cpos, false);
+	//}
 }
 
 
@@ -239,4 +266,89 @@ void CalibrationDlg::OnBnClickedButton13()
 		UpdateWindow();
 		clbrtl.EnsureVisible(nHeadNum, false);
 	}
+}
+
+
+void CalibrationDlg::OnBnClickedButton10()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	// TODO: 在此添加控件通知处理程序代码
+	char* pos;
+	CString cpos;
+	cout << "test end pos" << endl;
+	pos = abbsoc.GetEndPos();
+	cout << pos << endl;
+	cpos.Format(_T("%s"), CStringW(pos));
+	//cout << posVec[0] << " " << posVec[1] << " " << posVec[2] << " " << posVec[3] << " " << posVec[4] << " " << posVec[5] << " "  << posVec[6] <<endl;	
+
+
+	vector<double> posVec(6, 0);
+	sscanf_s(pos, "[%lf,%lf,%lf][%lf,%lf,%lf]", &posVec[0], &posVec[1], &posVec[2], &posVec[3], &posVec[4], &posVec[5]);
+	posVec[3] = posVec[3] / 180 * 3.1415926;
+	posVec[4] = posVec[4] / 180 * 3.1415926;
+	posVec[5] = posVec[5] / 180 * 3.1415926;
+	cpos.Format(_T("%.5lf"), posVec[0]);
+	GetDlgItem(IDC_EDIT13)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[1]);
+	GetDlgItem(IDC_EDIT14)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[2]);
+	GetDlgItem(IDC_EDIT15)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[3]);
+	GetDlgItem(IDC_EDIT16)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[4]);
+	GetDlgItem(IDC_EDIT17)->SetWindowText(cpos);
+	cpos.Format(_T("%.5lf"), posVec[5]);
+	GetDlgItem(IDC_EDIT18)->SetWindowText(cpos);
+}
+
+
+void CalibrationDlg::OnBnClickedButton2()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CString posStr, EndStr, SensorStr;
+	CString posStr1, posStr2, posStr3;
+	CString EndStr1, EndStr2, EndStr3, EndStr4, EndStr5, EndStr6;
+	CString SensorStr1, SensorStr2;
+
+	// TODO: 在此添加控件通知处理程序代码
+
+	//判断输入是否有效
+
+
+	GetDlgItem(IDC_EDIT1)->GetWindowText(posStr1);
+	GetDlgItem(IDC_EDIT11)->GetWindowText(posStr2);
+	GetDlgItem(IDC_EDIT12)->GetWindowText(posStr3);
+
+	GetDlgItem(IDC_EDIT13)->GetWindowText(EndStr1);
+	GetDlgItem(IDC_EDIT14)->GetWindowText(EndStr2);
+	GetDlgItem(IDC_EDIT15)->GetWindowText(EndStr3);
+	GetDlgItem(IDC_EDIT16)->GetWindowText(EndStr4);
+	GetDlgItem(IDC_EDIT17)->GetWindowText(EndStr5);
+	GetDlgItem(IDC_EDIT18)->GetWindowText(EndStr6);
+
+	GetDlgItem(IDC_EDIT19)->GetWindowText(SensorStr1);
+	GetDlgItem(IDC_EDIT20)->GetWindowText(SensorStr2);
+
+
+	int nHeadNum = clbrtl.GetItemCount();
+	posStr = _T("[") + posStr1 + _T(", ") + posStr2 + _T(", ") + posStr3 + _T("]");
+	EndStr = _T("[") + EndStr1 + _T(", ") + EndStr2 + _T(", ") + EndStr3 + _T(", ") + EndStr4 + _T(", ") + EndStr5 + _T(", ") + EndStr6 + _T("]");
+	SensorStr = _T("[") + SensorStr1 + _T(", ") + SensorStr2 + _T("]");
+	clbrtl.InsertItem(nHeadNum, posStr);
+	clbrtl.SetItemText(nHeadNum, 1, EndStr);
+	clbrtl.SetItemText(nHeadNum, 2, SensorStr);
+}
+
+
+void CalibrationDlg::OnBnClickedButton3()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int column = clbrtl.GetSelectionMark();        //选择一行
+	if (column == -1 || clbrtl.GetItemState(column, LVIS_SELECTED) != LVIS_SELECTED)
+	{
+		MessageBox(L"请选择一行，再进行删除", L"尚未选择要删除的行");
+		column = -1;
+	}
+	//bool selected = PosList.GetItemState(column, LVIS_SELECTED) != LVIS_SELECTED;
+	clbrtl.DeleteItem(column);
 }
