@@ -35,4 +35,6 @@ public:
 
 private:
 	ABBSocket abbsoc;
+public:
+	afx_msg void OnBnClickedButton11();
 };

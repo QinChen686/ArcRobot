@@ -54,6 +54,27 @@
     <ClInclude Include="CalibrationDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CalPos.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="glDisplay.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Simulation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix4D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Position3D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SensorCommunicate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArcRobot.cpp">
@@ -81,6 +102,27 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CalibrationDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CalPos.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="glDisplay.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Simulation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix4D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Position3D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SensorCommunicate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -59,7 +59,7 @@ int ABBSocket::SocketListen()
 		WSACleanup();           //释放套接字资源;
 		return -1;
 	}
-
+	return 0;
 }
 
 
@@ -199,10 +199,11 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 	return 0;
 }
 
-int ABBSocket::SocketScan(vector<vector<char *>> targetPos)
+int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime)
 {
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	SocketSend("Scan");
+	*ScanStartTime = timeGetTime();
 	for (int i = 0; i != targetPos.size(); i++)
 	{
 		//接收客户端数据  
@@ -224,7 +225,7 @@ int ABBSocket::SocketScan(vector<vector<char *>> targetPos)
 		}
 		if (buf[0] == '\0')
 			break;
-		cout << "dierci:" << buf << endl;
+		//cout << "dierci:" << buf << endl;
 		//tans data
 
 		sprintf_s(sendBuf, "Start");
@@ -232,28 +233,28 @@ int ABBSocket::SocketScan(vector<vector<char *>> targetPos)
 		recv(sClient, buf, BUF_SIZE, 0);
 
 		sprintf_s(sendBuf, "%s", targetPos[i][0]);
-		printf("%s\n", sendBuf);
+		//printf("%s\n", sendBuf);
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
 		//rot data
 		sprintf_s(sendBuf, "%s", targetPos[i][1]);
-		printf("%s\n", sendBuf);
+		//printf("%s\n", sendBuf);
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
 		//robconf data
 		sprintf_s(sendBuf, "%s", targetPos[i][2]);
-		printf("%s\n", sendBuf);
+		//printf("%s\n", sendBuf);
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
 		//extax data
 		sprintf_s(sendBuf, "%s", targetPos[i][3]);
-		printf("%s\n", sendBuf);
+		//printf("%s\n", sendBuf);
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
 		//sprintf_s(sendBuf,"[%.5f, %.5f, %.5f]", posx, posy, posz);
 
 
@@ -266,11 +267,11 @@ int ABBSocket::SocketScan(vector<vector<char *>> targetPos)
 
 	}
 	recv(sClient, buf, BUF_SIZE, 0);
-	cout << "ready?       " << buf << endl;
+	//cout << "ready?       " << buf << endl;
 	sprintf_s(sendBuf, "End");
 	send(sClient, sendBuf, strlen(sendBuf), 0);
 	retVal = recv(sClient, buf, BUF_SIZE, 0);
-	cout << "Last: " << buf << endl;
+	//cout << "Last: " << buf << endl;
 
 
 	//接收位置信息
@@ -315,9 +316,9 @@ int ABBSocket::SocketStop()
 	closesocket(sClient);   //关闭套接字  
 	WSACleanup();           //释放套接字资源;  
 	return 0;
-}
+} 
 
 WSADATA ABBSocket::wsd;            //WSADATA变量  
 SOCKET ABBSocket::sServer;        //服务器套接字  
 SOCKET ABBSocket::sClient;        //客户端套接字  
-SOCKADDR_IN  ABBSocket::addrServ;      //服务器地址 
+SOCKADDR_IN  ABBSocket::addrServ;      //服务器地址

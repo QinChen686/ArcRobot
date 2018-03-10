@@ -2,6 +2,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
+#include "CalPos.h"
 using namespace Eigen;
 using namespace std;
 

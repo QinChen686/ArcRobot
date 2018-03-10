@@ -75,7 +75,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>F:\Visual_Studio\VC\include\eigen;$(IncludePath)</IncludePath>
+    <ReferencePath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,10 +95,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\Visual_Studio\VC\include\eigen;E:\Program files\VS2015\VC\include\eigen;E:\ArcRobot\ArcRobot;D:\ArcRobot\ArcRobot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -197,13 +200,20 @@
     <ClInclude Include="ArcRobotDlg.h" />
     <ClInclude Include="calibration.h" />
     <ClInclude Include="CalibrationDlg.h" />
+    <ClInclude Include="CalPos.h" />
+    <ClInclude Include="glDisplay.h" />
     <ClInclude Include="mathClass.h" />
+    <ClInclude Include="Matrix4D.h" />
+    <ClInclude Include="Position3D.h" />
     <ClInclude Include="PosSeqDialog.h" />
     <ClInclude Include="ProcessLog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ScanDialog.h" />
+    <ClInclude Include="SensorCommunicate.h" />
+    <ClInclude Include="Simulation.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Vector3D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ABBSocketCommunication.cpp" />
@@ -211,15 +221,22 @@
     <ClCompile Include="ArcRobotDlg.cpp" />
     <ClCompile Include="calibration.cpp" />
     <ClCompile Include="CalibrationDlg.cpp" />
+    <ClCompile Include="CalPos.cpp" />
+    <ClCompile Include="glDisplay.cpp" />
     <ClCompile Include="mathClass.cpp" />
+    <ClCompile Include="Matrix4D.cpp" />
+    <ClCompile Include="Position3D.cpp" />
     <ClCompile Include="PosSeqDialog.cpp" />
     <ClCompile Include="ScanDialog.cpp" />
+    <ClCompile Include="SensorCommunicate.cpp" />
+    <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Vector3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ArcRobot.rc" />
