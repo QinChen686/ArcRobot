@@ -43,8 +43,10 @@ struct CaliStruct
 
 class Calibration {
 
-	vector<CaliStruct> caliData;
+	
 public:
+	vector<CaliStruct> caliData;
+	
 	int AddCaliData(CaliStruct &caliStruct);
 
 	Matrix4d calculateT();

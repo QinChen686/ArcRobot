@@ -124,11 +124,11 @@ char* ABBSocket::GetEndPos()
 
 
 //
-int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos) 
+int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos,int num) 
 {
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	SocketSend("RecPos");
-	for (int i = 0; i != targetPos.size(); i++)
+	for (int i = 0; i != num; i++)
 	{
 		//接收客户端数据  
 	    //原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
@@ -199,12 +199,12 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 	return 0;
 }
 
-int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime)
+int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime, int num)
 {
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	SocketSend("Scan");
 	*ScanStartTime = timeGetTime();
-	for (int i = 0; i != targetPos.size(); i++)
+	for (int i = 0; i != num; i++)
 	{
 		//接收客户端数据  
 		//原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 

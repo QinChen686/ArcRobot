@@ -229,7 +229,7 @@ void PosSeqDialog::OnBnClickedButton3()
 		targetPos[i][3] = T2A(data4);
 	}
 
-	abbsoc.SocketSendPos(targetPos);
+	abbsoc.SocketSendPos(targetPos,targetPos.size());
 }
 
 

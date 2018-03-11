@@ -19,10 +19,10 @@ public:
 	int SocketStart(char* Data);
 	int RecvLine(char *vptr, int maxlen = 150, char partChar = 0);
 	int my_read(char *ptr);
-	char* GetSensorData();
+	int closeSocket(){ return closesocket(sClient);  };
 
 
-private:
+public:
 
 	WSADATA         wsd;            //WSADATA变量  
 	SOCKET          sServer;        //服务器套接字  

@@ -122,6 +122,7 @@ void CalibrationDlg::OnBnClickedButton12()
 	// 从表格中获取数据，然后调用标定算法标定
 	//标定标志置为true
 	CalibratedFlag = true;
+	calibration.caliData.clear();//每次运行之前清除calibration里面的数据；
 
 	int nHeadNum = clbrtl.GetItemCount();
 	CString data1, data2, data3;

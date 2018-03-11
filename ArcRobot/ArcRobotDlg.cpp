@@ -60,6 +60,13 @@ CArcRobotDlg::CArcRobotDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_ARCROBOT_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	CalibrationDlg::CalibratedFlag = false;
+	res0.resize(1000);
+	for (int i = 0; i != 1000; i++)
+		res0[i].resize(10);
+	SensorData0.resize(1000);
+	for (int i = 0; i != 1000; i++)
+		SensorData0[i].resize(4);
 }
 
 void CArcRobotDlg::DoDataExchange(CDataExchange* pDX)
@@ -302,4 +309,264 @@ void CArcRobotDlg::OnBnClickedButton6()
 void CArcRobotDlg::OnBnClickedButton8()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	
+//1. 连接机器人，连接传感器进程
+	addtext(IDC_EDIT2, L"STEP1!");
+	abbsoc.SocketListen();
+	addtext(IDC_EDIT2, L"start Listen!");
+	abbsoc.SocketAccept();
+	addtext(IDC_EDIT2, L"aceepted a controller !");
+	sensorsocket0.SocketListen();
+	sensorsocket0.SocketAccept();
+
+//2.机器人运动到扫描起点
+	addtext(IDC_EDIT2, L"STEP2!");
+	FILE* FileOut;
+	if (fopen_s(&FileOut, "MoveToStartPos.txt", "r") != 0)
+		MessageBox(L"没有此文件", L"提示");
+	char content[500];
+	vector<vector<char *>> targetPos(100, vector<char *>(4, nullptr));
+	int targetNum = 0;
+	while (!feof(FileOut))                                   //循环读取每一行，直到文件尾  
+	{
+		fgets(content, 1024, FileOut);                     //将fp所指向的文件一行内容读到strLine缓冲区 
+														   //std::cout << content << std::endl;
+
+
+														   //char* data1,data2,data3;
+		char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
+		char* dataChar = content;
+		int i = 0;
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data1[i] = *dataChar;
+		data1[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data2[i] = *dataChar;
+		data2[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data3[i] = *dataChar;
+		data3[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data4[i] = *dataChar;
+		data4[i] = *dataChar;
+		targetPos[targetNum][0] = data1;
+		targetPos[targetNum][1] = data2;
+		targetPos[targetNum][2] = data3;
+		targetPos[targetNum][3] = data4;
+		targetNum++;
+	}
+
+	abbsoc.SocketSendPos(targetPos,targetNum);
+
+//3.开始扫描，通知机器人控制器与传感器进程开始计时。并获取机器人扫描过程位置数据
+	addtext(IDC_EDIT2, L"STEP3!");
+	FILE* FileOut0;
+	if (fopen_s(&FileOut0, "ScanPosVec.txt", "r") != 0)
+		MessageBox(L"没有此文件", L"提示");
+	
+	targetNum = 0;
+	char content0[500];
+	vector<vector<char *>> targetPos0(100, vector<char *>(4, nullptr));
+	while (!feof(FileOut0))                                   //循环读取每一行，直到文件尾  
+	{
+		fgets(content0, 1024, FileOut0);                     //将fp所指向的文件一行内容读到strLine缓冲区 
+														   //std::cout << content << std::endl;
+
+
+														   //char* data1,data2,data3;
+		char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
+		char* dataChar = content0;
+		int i = 0;
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data1[i] = *dataChar;
+		data1[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data2[i] = *dataChar;
+		data2[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data3[i] = *dataChar;
+		data3[i] = *dataChar;
+		dataChar += 2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			data4[i] = *dataChar;
+		data4[i] = *dataChar;
+		//std::cout << "data1:" << data1 << std::endl;
+		//std::cout << "data2:" << data2 << std::endl;
+		//std::cout << "data3:" << data3 << std::endl;
+		//std::cout << std::endl;
+
+		targetPos0[targetNum][0] = data1;
+		targetPos0[targetNum][1] = data2;
+		targetPos0[targetNum][2] = data3;
+		targetPos0[targetNum][3] = data4;
+		targetNum++;
+	}
+	fclose(FileOut0);
+
+	abbsoc.SocketScan(targetPos0, &ScanStartTime0, targetNum);//位置发送完成立即开始计时
+	sensorsocket0.SocketStart("start");//给传感器进程发送开始命令
+	//开始读取机器人位置数据
+	CWinThread* mythread = AfxBeginThread(RecvRobotPos, NULL, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+	
+//4.传感器处理得到焊缝位置，发送焊缝相对于传感器位置数据到主控制进程
+	addtext(IDC_EDIT2, L"STEP4!");
+	char recvbuf[100];
+	int SubFrequency = 0;
+	while (sensorsocket0.RecvLine(recvbuf, 100, 0) != 0)
+	{
+		//cout << recvbuf;
+		//ZeroMemory(recvbuf, 100);//清空内存recvbuf
+
+		//转换收到的传感器数据，并存入vector中
+		if (SubFrequency % 10 == 0)
+		{
+			//cout << SubFrequency << endl;
+			//sscanf_s 严格按照格式来即可
+			sscanf_s(recvbuf, "(%lf)x:%lf, y:%lf, z:%lf", &SensorData0[numOfSensorData0][0], &SensorData0[numOfSensorData0][1], &SensorData0[numOfSensorData0][2], &SensorData0[numOfSensorData0][3]);
+			numOfSensorData0++;
+		}
+		SubFrequency++;
+	}
+	sensorsocket0.closeSocket();
+	//for (int ii = 0; ii <= SubFrequency/10; ii++)
+	//cout << "transformed:" << "x:" << SensorData[ii][0] << "y:" << SensorData[ii][1] << "z:" << SensorData[ii][2] << endl;
+
+
+//5.通过传感器数据和机器人位置数据计算得到焊缝相对于世界坐标系位置，以及焊接姿态
+	//如果本次运行之前未标定传感器，采用上一次标定的结果
+	//bool  CalibrationDlg::CalibratedFlag = false;//是否标定的标志
+	addtext(IDC_EDIT2, L"STEP5!");
+	if (CalibrationDlg::CalibratedFlag == false)
+	{
+		FILE* FileOut;
+		if (fopen_s(&FileOut, "CalibrationResult.txt", "r") != 0)
+			MessageBox(L"没有此文件", L"提示");
+		char TStr[200];
+		for (int Trow = 0; Trow != 4; Trow++)
+		{
+			fgets(TStr, 200, FileOut);
+			sscanf_s(TStr, "%lf %lf %lf %lf", &CalibrationDlg::T(Trow, 0), &CalibrationDlg::T(Trow, 1), &CalibrationDlg::T(Trow, 2), &CalibrationDlg::T(Trow, 3));
+		}
+		fclose(FileOut);
+	}
+	cout << "旋转矩阵" << endl;
+	cout << CalibrationDlg::T << endl;
+	cout << "机器人位置数据：" << endl;
+	for (int i = 0; i < numOfRes0; i++)
+		cout << "time: " << res0[i][0] << "s  " << res0[i][1] << " " << res0[i][2] << " " << res0[i][3] << " " << res0[i][4] << " " << res0[i][5] << " " << res0[i][6] << " " << res0[i][7] << endl;
+	cout << "传感器数据：" << endl;
+	for (int i = 0; i < numOfSensorData0; i++)
+		cout << "time: " << SensorData0[i][1] << "s  " << SensorData0[i][2] << " " << SensorData0[i][3] << endl;
+
+	//找到焊缝对应时刻机器人位姿，采用线性拟合得到
+	vector<vector<double>> fitPos(numOfSensorData0, vector<double>(8, 0.0));
+	int numOfFitPos = 0, j = 1;
+	double timeStart = res0[0][0];
+	for (int i = 0; i != numOfSensorData0; i++)
+	{
+		fitPos[numOfFitPos][0] = SensorData0[numOfSensorData0 - i - 1][1];//发送过来的传感器位置值的时间是逆序的
+		while (fitPos[numOfFitPos][0] > timeStart && j < numOfRes0)
+		{
+			timeStart = res0[j++][0];
+		}
+		if (fitPos[numOfFitPos][0]<res0[0][0])
+			continue;
+		if (fitPos[numOfFitPos][0] >= res0[numOfRes0 - 1][0])
+			break;
+		vector<double> TemRes(6, 0.0);
+		for (int ind = 0; ind != 6; ind++)
+			TemRes[ind] = (fitPos[numOfFitPos][0] - res0[j - 2][0]) / (res0[j - 1][0] - res0[j - 2][0])*(res0[j - 1][ind + 1] - res0[j - 2][ind + 1]) + res0[j - 2][ind + 1];
+
+		//坐标变换得到焊缝位置值
+		Matrix4d EndP;
+		//1.将xyzabc转换成T矩阵形式
+		double alfa = TemRes[3] / 180 * 3.1415926;
+		double beta = TemRes[4] / 180 * 3.1415926;
+		double gama = TemRes[5] / 180 * 3.1415926;
+		vector<double> temR{ cos(alfa)*cos(beta), cos(alfa)*sin(beta)*sin(gama) - sin(alfa)*cos(gama), cos(alfa)*sin(beta)*cos(gama) + sin(alfa)*sin(gama),
+			sin(alfa)*cos(beta), sin(alfa)*sin(beta)*sin(gama) + cos(alfa)*cos(gama), sin(alfa)*sin(beta)*cos(gama) - cos(alfa)*sin(gama),
+			-sin(beta), cos(beta)*sin(gama), cos(beta)*cos(gama) };
+		for (int Trow = 0; Trow != 3; Trow++)
+			for (int Tcol = 0; Tcol != 3; Tcol++)
+				EndP(Trow, Tcol) = temR[Trow * 3 + Tcol];
+		EndP(0, 3) = TemRes[0]; EndP(1, 3) = TemRes[1]; EndP(2, 3) = TemRes[2];
+		EndP(3, 0) = 0; EndP(3, 1) = 0; EndP(3, 2) = 0; EndP(3, 2) = 1;
+
+		//2.利用矩阵相乘得到位置和姿态
+		Matrix4d TemRot(EndP*CalibrationDlg::T);
+		Vector4d SensorDelta;
+		SensorDelta << 0, SensorData0[i][2], SensorData0[i][3], 1;
+		Vector4d TemPos(EndP*CalibrationDlg::T*SensorDelta);
+		//3.T矩阵转换成xyzabc形式并赋值到fitPos
+		fitPos[numOfFitPos][1] = TemPos(0);
+		fitPos[numOfFitPos][2] = TemPos(1);
+		fitPos[numOfFitPos][3] = TemPos(2);
+
+		Matrix3d t_R;
+		t_R(0, 0) = EndP(0, 0); t_R(0, 1) = EndP(0, 1); t_R(0, 2) = EndP(0, 2);
+		t_R(1, 0) = EndP(1, 0); t_R(1, 1) = EndP(1, 1); t_R(1, 2) = EndP(1, 2);
+		t_R(2, 0) = EndP(2, 0); t_R(2, 1) = EndP(2, 1); t_R(2, 2) = EndP(2, 2);
+		Quaterniond Q3(t_R);
+		fitPos[numOfFitPos][4] = Q3.coeffs()(0);
+		fitPos[numOfFitPos][5] = Q3.coeffs()(1);
+		fitPos[numOfFitPos][6] = Q3.coeffs()(2);
+		fitPos[numOfFitPos][7] = Q3.coeffs()(3);
+		//cout << "t_R: " << t_R << endl;
+		//cout << "Quaternion3: " << endl << Q3.coeffs() << endl;
+
+		//计算下一个焊缝点
+		numOfFitPos++;
+
+	}
+	for (int i = 0; i < numOfFitPos; i++)
+		//cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
+		cout << "[" << fitPos[i][1] << ", " << fitPos[i][2] << " " << fitPos[i][3] << "]" << " [" << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
+
+
+	//6.发送位置使机器人运动
+
+
 }
+
+UINT CArcRobotDlg::RecvRobotPos(LPVOID lpParam)
+{
+	char* pos;
+	int rval;
+	numOfRes0 = 0;
+	pos = abbsoc.SocketPosRecv(&rval);
+
+	while (rval != -1)
+	{
+		sscanf_s(pos, "%lf[%lf,%lf,%lf][%lf,%lf,%lf]", &res0[numOfRes0][0], &res0[numOfRes0][1], &res0[numOfRes0][2], &res0[numOfRes0][3], &res0[numOfRes0][4], &res0[numOfRes0][5], &res0[numOfRes0][6]);
+		//cout << "controller time:" << res[numOfRes][0] << endl;
+		//calwl.calWeldLinePos(res[numOfRes], RealPos[numOfRes]);
+		numOfRes0++;
+		pos = abbsoc.SocketPosRecv(&rval);
+	}
+	return 0;
+}
+
+
+vector<vector<double>> CArcRobotDlg::res0;//机器人位置带时间戳
+int CArcRobotDlg::numOfRes0;//机器人位置计数
+
+vector<vector<double>> CArcRobotDlg::SensorData0;//传感器焊缝位置
+int CArcRobotDlg::numOfSensorData0;//传感器焊缝计数
+
+//vector<vector<double>> CArcRobotDlg::RealPos;
+ABBSocket CArcRobotDlg::abbsoc;
+DWORD CArcRobotDlg::ScanStartTime0;
+DWORD CArcRobotDlg::GetWeldLineTime0;
+int CArcRobotDlg::SensorPosCount0;
+bool  CalibrationDlg::CalibratedFlag = false;//是否标定的标志
