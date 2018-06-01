@@ -318,6 +318,8 @@ void CArcRobotDlg::OnBnClickedButton8()
 	addtext(IDC_EDIT2, L"aceepted a controller !");
 	sensorsocket0.SocketListen();
 	sensorsocket0.SocketAccept();
+	//回到原点
+	abbsoc.SetToZero();
 
 //2.机器人运动到扫描起点
 	addtext(IDC_EDIT2, L"STEP2!");
@@ -325,7 +327,7 @@ void CArcRobotDlg::OnBnClickedButton8()
 	if (fopen_s(&FileOut, "MoveToStartPos.txt", "r") != 0)
 		MessageBox(L"没有此文件", L"提示");
 	char content[500];
-	vector<vector<char *>> targetPos(100, vector<char *>(4, nullptr));
+	vector<vector<char *>> targetPos(100, vector<char *>(6, nullptr));
 	int targetNum = 0;
 	while (!feof(FileOut))                                   //循环读取每一行，直到文件尾  
 	{
@@ -359,10 +361,14 @@ void CArcRobotDlg::OnBnClickedButton8()
 		targetPos[targetNum][1] = data2;
 		targetPos[targetNum][2] = data3;
 		targetPos[targetNum][3] = data4;
+		targetPos[targetNum][4] = "MoveL";
+		targetPos[targetNum][5] = "v50";
 		targetNum++;
 	}
 
 	abbsoc.SocketSendPos(targetPos,targetNum);
+	addtext(IDC_EDIT2, L"Have Moved To Scan Start Position!");
+
 
 //3.开始扫描，通知机器人控制器与传感器进程开始计时。并获取机器人扫描过程位置数据
 	addtext(IDC_EDIT2, L"STEP3!");
@@ -413,19 +419,22 @@ void CArcRobotDlg::OnBnClickedButton8()
 		targetNum++;
 	}
 	fclose(FileOut0);
-
-	abbsoc.SocketScan(targetPos0, &ScanStartTime0, targetNum);//位置发送完成立即开始计时
 	sensorsocket0.SocketStart("start");//给传感器进程发送开始命令
+	recv(sensorsocket0.sClient, sensorsocket0.read_buf, sizeof(sensorsocket0.read_buf), 0);//给传感器进程发送开始命令
+	abbsoc.SocketScan(targetPos0, &ScanStartTime0, targetNum);//位置发送完成立即开始计时
+	addtext(IDC_EDIT2, L"Start Scanning!");
 	//开始读取机器人位置数据
 	CWinThread* mythread = AfxBeginThread(RecvRobotPos, NULL, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 	
 //4.传感器处理得到焊缝位置，发送焊缝相对于传感器位置数据到主控制进程
 	addtext(IDC_EDIT2, L"STEP4!");
+	addtext(IDC_EDIT2, L"Waitting for Sensor Data Comming!");
 	char recvbuf[100];
 	int SubFrequency = 0;
+	numOfSensorData0 = 0;
 	while (sensorsocket0.RecvLine(recvbuf, 100, 0) != 0)
 	{
-		//cout << recvbuf;
+		cout << recvbuf;
 		//ZeroMemory(recvbuf, 100);//清空内存recvbuf
 
 		//转换收到的传感器数据，并存入vector中
@@ -439,6 +448,7 @@ void CArcRobotDlg::OnBnClickedButton8()
 		SubFrequency++;
 	}
 	sensorsocket0.closeSocket();
+	addtext(IDC_EDIT2, L"SensorData Received!");
 	//for (int ii = 0; ii <= SubFrequency/10; ii++)
 	//cout << "transformed:" << "x:" << SensorData[ii][0] << "y:" << SensorData[ii][1] << "z:" << SensorData[ii][2] << endl;
 
@@ -474,8 +484,8 @@ void CArcRobotDlg::OnBnClickedButton8()
 	int numOfFitPos = 0, j = 1;
 	double timeStart = res0[0][0];
 	for (int i = 0; i != numOfSensorData0; i++)
-	{
-		fitPos[numOfFitPos][0] = SensorData0[numOfSensorData0 - i - 1][1];//发送过来的传感器位置值的时间是逆序的
+	{//numOfSensorData0 - i - 1
+		fitPos[numOfFitPos][0] = SensorData0[i][1];//发送过来的传感器位置值的时间是逆序的
 		while (fitPos[numOfFitPos][0] > timeStart && j < numOfRes0)
 		{
 			timeStart = res0[j++][0];
@@ -518,10 +528,15 @@ void CArcRobotDlg::OnBnClickedButton8()
 		t_R(1, 0) = EndP(1, 0); t_R(1, 1) = EndP(1, 1); t_R(1, 2) = EndP(1, 2);
 		t_R(2, 0) = EndP(2, 0); t_R(2, 1) = EndP(2, 1); t_R(2, 2) = EndP(2, 2);
 		Quaterniond Q3(t_R);
-		fitPos[numOfFitPos][4] = Q3.coeffs()(0);
-		fitPos[numOfFitPos][5] = Q3.coeffs()(1);
-		fitPos[numOfFitPos][6] = Q3.coeffs()(2);
-		fitPos[numOfFitPos][7] = Q3.coeffs()(3);
+		//fitPos[numOfFitPos][4] = Q3.coeffs()(0);
+		//fitPos[numOfFitPos][5] = Q3.coeffs()(1);
+		//fitPos[numOfFitPos][6] = Q3.coeffs()(2);
+		//fitPos[numOfFitPos][7] = Q3.coeffs()(3);
+		//目前没有计算焊接姿态，先采用固定姿态 quat=[0.01074,-0.36312,0.80240,-0.47348]
+		fitPos[numOfFitPos][4] = 0.01074;
+		fitPos[numOfFitPos][5] = 0.36312;
+		fitPos[numOfFitPos][6] = 0.80240;
+		fitPos[numOfFitPos][7] = -0.47348;
 		//cout << "t_R: " << t_R << endl;
 		//cout << "Quaternion3: " << endl << Q3.coeffs() << endl;
 
@@ -529,14 +544,59 @@ void CArcRobotDlg::OnBnClickedButton8()
 		numOfFitPos++;
 
 	}
+	addtext(IDC_EDIT2, L"Finished caculating real position!");
 	for (int i = 0; i < numOfFitPos; i++)
 		//cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
-		cout << "[" << fitPos[i][1] << ", " << fitPos[i][2] << " " << fitPos[i][3] << "]" << " [" << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
+		cout << "[" << fitPos[i][1] << ", " << fitPos[i][2] << " " << fitPos[i][3] << "]" << " [" << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][7] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
 
 
 	//6.发送位置使机器人运动
+	addtext(IDC_EDIT2, L"STEP6!");
+	vector<vector<char *>> targetPos1(numOfFitPos/5 + 2, vector<char *>(6, nullptr));
+	for (int i = 0; i != numOfFitPos / 5 + 2; i++)
+	{
+		for(int j=0;j!=6;j++)
+		{	
+			char *fitStr=new char[200];
+			targetPos1[i][j] = fitStr;
+		}
+	
+	}
+	//[731.5, 650.5, 533.4][0.00640, -0.13130, 0.98885, 0.06989]
+	sprintf_s(targetPos1[0][0],200, "[343.32,-632.11,828.00]");
+	sprintf_s(targetPos1[0][1], 200, "[0.01074,0.36312,0.80240,-0.47348]");
+	sprintf_s(targetPos1[0][2], 200, "[-1,-1,0,0]");
+	sprintf_s(targetPos1[0][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
+	sprintf_s(targetPos1[0][4], 200, "MoveL");
+	sprintf_s(targetPos1[0][5], 200, "v50");
+	//-0.5422    0.5927 - 0.5956
+	//0.8333    0.2886 - 0.4715
+	//- 0.1076 - 0.7520 - 0.6503
+	// -10 * [-0.5956, -0.4715, -0.6503]
+	//ans =
+	//5.9560    4.7150    6.5030
+	for (int i = 1; i < numOfFitPos/5 + 1; i++)
+	{
+		sprintf_s(targetPos1[i][0], 200, "[%lf, %lf, %lf]", fitPos[i * 5-1][1]+ 6, fitPos[i * 5 - 1][2]-1, fitPos[i * 5 - 1][3]+ 6.503);
+		sprintf_s(targetPos1[i][1], 200, "[%lf, %lf, %lf, %lf]",fitPos[i*5 - 1][4],fitPos[i*5 - 1][5],fitPos[i*5 - 1][6],fitPos[i*5 - 1][7]);
+		sprintf_s(targetPos1[i][2], 200, "[-1, -1, 0, 0]");
+		sprintf_s(targetPos1[i][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
+		sprintf_s(targetPos1[i][4], 200, "ArcL");
+		sprintf_s(targetPos1[i][5], 200, "v50");
+	}
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][0], 200, "[%lf, %lf, %lf]", fitPos[numOfFitPos - 1][1] + 6, fitPos[numOfFitPos - 1][2]-1, fitPos[numOfFitPos - 1][3] + 6.503);
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][1], 200, "[%lf, %lf, %lf, %lf]", fitPos[numOfFitPos - 1][4], fitPos[numOfFitPos - 1][5], fitPos[numOfFitPos - 1][6], fitPos[numOfFitPos - 1][7]);
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][2], 200, "[-1, -1, 0, 0]");
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][4], 200, "ArcLEnd");
+	sprintf_s(targetPos1[numOfFitPos / 5 + 1][5], 200, "v50");
 
+	sprintf_s(targetPos1[1][4], 200, "MoveL");
+	sprintf_s(targetPos1[2][4], 200, "ArcLStart");
 
+	addtext(IDC_EDIT2, L"LET US MOVE!");
+	abbsoc.SocketSendPos(targetPos1, numOfFitPos/5 + 2,false);
+	
 }
 
 UINT CArcRobotDlg::RecvRobotPos(LPVOID lpParam)
@@ -554,6 +614,7 @@ UINT CArcRobotDlg::RecvRobotPos(LPVOID lpParam)
 		numOfRes0++;
 		pos = abbsoc.SocketPosRecv(&rval);
 	}
+
 	return 0;
 }
 

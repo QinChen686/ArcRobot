@@ -1,0 +1,224 @@
+MODULE ArcProgram
+    VAR socketdev socket1;
+    VAR string CMDString;
+    VAR string PosString;
+    VAR num retry_no:=0;
+    VAR string flagString;
+    VAR string toolString;
+    VAR string tansString;
+    VAR string rotString;
+    VAR string robconfString;
+    VAR string extaxString;
+    VAR robtarget target_POS;
+    VAR zonedata path0 := [ true, 25, 40, 40, 10, 35, 5 ];
+    CONST jointtarget p50:=[[0,0,0,0,90,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    VAR robtarget Scan_target_POS{100};
+    VAR num a;
+    VAR pos xyzPos;
+    VAR bool convertOk1;
+    VAR bool convertOk2;
+    VAR bool convertOk3;
+    VAR bool convertOk4;
+
+    VAR intnum timeint;
+    VAR clock myclock;
+    VAR num time1;
+    VAR robtarget p1;
+
+    VAR num anglex;
+    VAR num angley;
+    VAR num anglez;
+    
+    TASK PERS  tooldata tool1:=[TRUE,[[-66.081,1.70513,429.57],[1,0,0,0]],[3,[250,0,50],[1,0,0,0],0,0,0]];
+
+    PROC main()
+        ClkReset myclock;
+        SocketCreate socket1;
+        SocketConnect socket1,"192.168.125.16",4999,\Time:=2;
+
+        WHILE TRUE DO
+            SocketReceive socket1,\Str:=CMDString;
+            cmdExplain(CMDString);
+        ENDWHILE
+
+    ERROR
+        IF ERRNO=ERR_SOCK_TIMEOUT THEN
+            IF retry_no<200 THEN
+                ResetRetryCount;
+                WaitTime 1;
+                retry_no:=retry_no+1;
+                RETRY;
+            ELSE
+                RAISE ;
+            ENDIF
+        ENDIF
+    ENDPROC
+
+
+    PROC cmdExplain(string cmd)
+        TEST cmd
+        CASE "CurPos":
+            CurPos;
+        CASE "PointPos":
+            PointPos;
+        CASE "EndPos":
+            EndPos;
+        CASE "RecPos":
+            RecPos;
+        CASE "Scan":
+            ClkStart myclock;
+            Scan;
+        CASE "ToZero":
+            ToZero;
+        CASE "Calibration":
+            Calibration;
+        DEFAULT:
+            Stop;
+        ENDTEST
+    ENDPROC
+
+    PROC CurPos()
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        PosString:=ValToStr(p1.trans);
+        PosString:=PosString+ValToStr(p1.rot);
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+    PROC PointPos()
+        p1:=CRobT(\Tool:=tool1\WObj:=wobj0);
+        PosString:=ValToStr(p1.trans);
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+    PROC EndPos()
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        anglex:=EulerZYX(\X,p1.rot);
+        angley:=EulerZYX(\Y,p1.rot);
+        anglez:=EulerZYX(\Z,p1.rot);
+        PosString:=ValToStr(p1.trans);
+        PosString:=PosString+"["+ValToStr(anglex)+","+ValToStr(angley)+","+ValToStr(anglez)+"]";
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+    PROC Scan()
+
+        a:=0;
+        SocketSend socket1\Str:="ready";
+        SocketReceive socket1\Str:=flagString,\Time:=5;
+        SocketSend socket1\Str:="flagString received";
+        WHILE flagString="Start" DO
+            SocketReceive socket1\Str:=tansString;
+            SocketSend socket1\Str:="tansString received";
+            SocketReceive socket1\Str:=rotString;
+            SocketSend socket1\Str:="rotString received";
+            SocketReceive socket1\Str:=robconfString;
+            SocketSend socket1\Str:="robconfString received";
+            SocketReceive socket1\Str:=extaxString;
+            SocketSend socket1\Str:="extaxString received";
+            convertOk1:=StrToVal(tansString,target_POS.trans);
+            convertOk2:=StrToVal(rotString,target_POS.rot);
+            convertOk3:=StrToVal(robconfString,target_POS.robconf);
+            convertOk4:=StrToVal(extaxString,target_POS.extax);
+            IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
+                a:=a+1;
+                Scan_target_POS{a}:=target_POS;
+                tansString:="";
+                rotString:="";
+                robconfString:="";
+                extaxString:="";
+            ELSE
+                Break;
+            ENDIF
+            SocketSend socket1\Str:="ready";
+            SocketReceive socket1\Str:=flagString,\Time:=5;
+            SocketSend socket1\Str:="flagString received";
+        ENDWHILE
+
+        ConfJ\On;
+        CONNECT timeint WITH SendTarget;
+        ITimer 0.1,timeint;
+        FOR i FROM 1 TO a DO
+            MoveJ Scan_target_POS{i},v5,path0,tool0;
+            ConfJ\Off;
+        ENDFOR
+        ClkStop myclock;
+        IDelete timeint;
+
+    ENDPROC
+
+
+    PROC RecPos()
+        ConfJ\On;
+        SocketSend socket1\Str:="wait for tool flag";  
+        SocketReceive socket1\Str:=toolString,\Time:=5; 
+        
+        SocketSend socket1\Str:="ready";
+        SocketReceive socket1\Str:=flagString,\Time:=5;
+        SocketSend socket1\Str:="flagString received";
+        WHILE flagString="Start" DO
+            SocketReceive socket1\Str:=tansString;
+            SocketSend socket1\Str:="tansString received";
+            SocketReceive socket1\Str:=rotString;
+            SocketSend socket1\Str:="rotString received";
+            SocketReceive socket1\Str:=robconfString;
+            SocketSend socket1\Str:="robconfString received";
+            SocketReceive socket1\Str:=extaxString;
+            SocketSend socket1\Str:="extaxString received";
+            convertOk1:=StrToVal(tansString,target_POS.trans);
+            convertOk2:=StrToVal(rotString,target_POS.rot);
+            convertOk3:=StrToVal(robconfString,target_POS.robconf);
+            convertOk4:=StrToVal(extaxString,target_POS.extax);
+            IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
+                
+                IF toolString="tool0" THEN
+                  MoveL target_POS,v50,path0,tool0;
+                ELSE
+                    MoveL target_POS,v10,path0,tool1;
+                endif
+                tansString:="";
+                rotString:="";
+                robconfString:="";
+                extaxString:="";
+            ELSE
+                Break;
+            ENDIF
+            ConfJ\Off;
+            SocketSend socket1\Str:="ready";
+            SocketReceive socket1\Str:=flagString,\Time:=5;
+            SocketSend socket1\Str:="flagString received";
+        ENDWHILE
+    ENDPROC
+
+    PROC ToZero()
+        MoveAbsJ p50,v50,z50,tool0;
+    ENDPROC
+
+    PROC Calibration()
+        !VAR num anglex;
+        !VAR num angley;
+        !VAR num anglez;
+        !VAR pose object;
+        !anglex := EulerZYX(\X, object.rot);
+        !angley := EulerZYX(\Y, object.rot);
+        !anglez := EulerZYX(\Z, object.rot);
+
+    ENDPROC
+
+
+    TRAP SendTarget
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        time1:=ClkRead(myclock,\HighRes);
+        PosString:=ValToStr(time1);
+        PosString:=PosString+ValToStr(p1.trans);
+        !PosString:=PosString+ValToStr(p1.rot);
+        !anglex := EulerZYX(\X, p1.rot);
+        !angley := EulerZYX(\Y, p1.rot);
+        !anglez := EulerZYX(\Z, p1.rot);
+        PosString:=PosString+"["+ValToStr(EulerZYX(\Z, p1.rot))+",";
+        PosString:=PosString+ValToStr(EulerZYX(\Y, p1.rot))+",";
+        PosString:=PosString+ValToStr(EulerZYX(\X, p1.rot))+"]";
+        SocketSend socket1\Str:=PosString;
+    ENDTRAP
+
+
+ENDMODULE
