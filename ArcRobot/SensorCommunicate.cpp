@@ -140,6 +140,7 @@ int SensorSocket::my_read(char *ptr)
 
 }
 
+
 int SensorSocket::read_cnt;
 char *SensorSocket::read_ptr;
 char SensorSocket::read_buf[BUF_SIZE2];

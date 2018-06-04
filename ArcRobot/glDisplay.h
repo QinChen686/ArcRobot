@@ -28,7 +28,7 @@ public:
 
 	glDisplay()
 	{
-		NorverVec.resize(10000);
+		NorverVec.resize(100000);
 		OldMouse = new Position3D();
 		Mouse = new Position3D();
 

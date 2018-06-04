@@ -6,6 +6,10 @@
 
 #include "ABBSocketCommunication.h"
 #include "mathClass.h"
+#include "SensorCommunicate.h"//one key start include
+
+
+
 
 // CArcRobotDlg ¶Ô»°¿ò
 class CArcRobotDlg : public CDialogEx
@@ -40,7 +44,6 @@ public:
 	afx_msg void OnBnClickedButton2();
 private:
 	int addtext(int nID, CString str, bool addition=true);
-	ABBSocket abbsoc;
 	mathfun mathc;
 public:
 	afx_msg void OnBnClickedButton3();
@@ -49,6 +52,18 @@ public:
 	afx_msg void OnBnClickedButton7();
 	afx_msg void OnBnClickedButton6();
 	afx_msg void OnBnClickedButton8();
+
+//one key start resouces;
+public:
+	SensorSocket sensorsocket0;
+	static ABBSocket abbsoc;
+	static vector<vector<double>> res0;
+	static int numOfRes0;
+	static vector<vector<double>> SensorData0;//(1000, vector<double>(4, 0.0));
+	static int numOfSensorData0;
+	static DWORD ScanStartTime0, GetWeldLineTime0;
+	static int SensorPosCount0;
+	static UINT RecvRobotPos(LPVOID lpParam);
 };
 
 

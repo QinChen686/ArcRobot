@@ -4,38 +4,50 @@ using namespace std;
 int glDisplay::ReadSlpFile()
 {
 	char buffer[256];
-	ifstream slpin("C:\\Users\\QC\\Desktop\\论文\\OpenGl\\SLPData_IRB1410\\irb1400_-_m2000_rev2_01-1.slp");
-	if (!slpin.is_open())
-	{
-		cout << "Error opening file"; 
-		exit(1);
-	}
+	const int NumOfPart = 1;
+	ifstream slpinVec[NumOfPart];
 	int normalCount = 0;
-	while (!slpin.eof())
-	{
-		slpin.getline(buffer, 100);
-		if (strncmp(buffer, "      normal", 12) == 0)
+	for(int i=0;i!= NumOfPart;i++)
+	{ 
+		char strTem[100]; 
+		sprintf_s(strTem, "E:\\ArcRobot\\ArcRobot\\SLPData_IRB1410\\irb1400_-_m2000_rev2_01-%d.slp", i + 1);
+		slpinVec[i].open(strTem);
+		if (!slpinVec[i].is_open())
 		{
-			sscanf_s(buffer, "      normal %lf %lf %lf", &NorverVec[count].normal1, &NorverVec[count].normal2, &NorverVec[count].normal3);
-			cout << "THE " << count << "TH normal is " << NorverVec[count].normal1 << "  " << NorverVec[count].normal2 << "	" << NorverVec[count].normal3 << endl;
-			count++;
-			normalCount++;
+			cout << "Error opening file"; 
+			exit(1);
 		}
-		if (strncmp(buffer, "      vertex", 12) == 0)
+	}
+	
+	for (int i=0;i!= NumOfPart;i++)
+	{ 
+		while (!slpinVec[i].eof())
 		{
-			if (normalCount == 3)
+			slpinVec[i].getline(buffer, 100);
+			if (strncmp(buffer, "      normal", 12) == 0)
 			{
-				normalCount = 0;
-				count -= 3;
+				sscanf_s(buffer, "      normal %lf %lf %lf", &NorverVec[count].normal1, &NorverVec[count].normal2, &NorverVec[count].normal3);
+				cout << "THE " << count << "TH normal is " << NorverVec[count].normal1 << "  " << NorverVec[count].normal2 << "	" << NorverVec[count].normal3 << endl;
+				count++;
+				normalCount++;
 			}
-			sscanf_s(buffer, "      vertex %lf %lf %lf", &NorverVec[count].vertex1, &NorverVec[count].vertex2, &NorverVec[count].vertex3);
-			cout << "THE " << count << "TH vertex is " << NorverVec[count].vertex1 << "  " << NorverVec[count].vertex2 << "  " << NorverVec[count].vertex3 << endl;
-			count++;
+			if (strncmp(buffer, "      vertex", 12) == 0)
+			{
+				if (normalCount == 3)
+				{
+					normalCount = 0;
+					count -= 3;
+				}
+				sscanf_s(buffer, "      vertex %lf %lf %lf", &NorverVec[count].vertex1, &NorverVec[count].vertex2, &NorverVec[count].vertex3);
+				cout << "THE " << count << "TH vertex is " << NorverVec[count].vertex1 << "  " << NorverVec[count].vertex2 << "  " << NorverVec[count].vertex3 << endl;
+				count++;
+			}
 		}
 	}
 	return 0;
 }
 
+//定义角度 视点 材质 绘制三角形面片
 void glDisplay::GLDraw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -50,7 +62,7 @@ void glDisplay::GLDraw()
 
 	/////////////////////////////////////////////////
 	//定义材质
-	GLfloat robot_mat_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };  //定义材质的环境光颜色，骗蓝色  
+	GLfloat robot_mat_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };  //定义材质的环境光颜色，偏蓝色  
 	GLfloat robot_mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  //定义材质的漫反射光颜色，偏蓝色  
 	GLfloat robot_mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };   //定义材质的镜面反射光颜色，红色  
 	GLfloat robot_mat_emission[] = { 0.0f, 0.0f, 0.0f, 1.0f };   //定义材质的辐射光颜色，为0  
@@ -75,6 +87,7 @@ void glDisplay::GLDraw()
 	//SwapBuffers(hrenderDC);
 }
 
+//执行旋转操作
 void glDisplay::executeRotateOperation(int x, int y)
 {
 	Mouse->setX(x);
@@ -97,6 +110,8 @@ void glDisplay::executeRotateOperation(int x, int y)
 	AuxX->normalize();
 	*OldMouse = *Mouse;
 }
+
+//执行缩放操作
 void glDisplay::executeScaleOperation(float factor)
 {
 	if (TempscaleFactor <= 0)
@@ -109,6 +124,7 @@ void glDisplay::executeScaleOperation(float factor)
 	}
 }
 
+//执行平移操作
 void glDisplay::executeTranslateOperation(int x, int y)
 {
 	Mouse->setX(x);
@@ -118,6 +134,7 @@ void glDisplay::executeTranslateOperation(int x, int y)
 	*OldMouse = *Mouse;
 }
 
+//获取原始位置
 void glDisplay::getInitPos(int x, int y)
 {
 	Mouse->setX(x);

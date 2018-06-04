@@ -30,7 +30,14 @@ void Simulation::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(Simulation, CDialogEx)
-	ON_WM_TIMER()
+//	ON_WM_TIMER()
+	ON_WM_PAINT()
+	ON_WM_MOUSEWHEEL()
+	ON_WM_MOUSEMOVE()
+//	ON_WM_MBUTTONDOWN()
+//	ON_WM_MBUTTONUP()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 
@@ -228,10 +235,105 @@ void Simulation::RenderScene()
 	SwapBuffers(hrenderDC);
 }
 
+/*
 void Simulation::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	RenderScene();
-	m_yRotate += 3;
+	m_yRotate += 10;
 	CDialogEx::OnTimer(nIDEvent);
+}
+*/
+
+void Simulation::OnPaint()
+{
+	CPaintDC dc(this); // device context for painting
+	RenderScene();
+					   // TODO: 在此处添加消息处理程序代码
+					   // 不为绘图消息调用 CDialogEx::OnPaint()
+}
+
+
+BOOL Simulation::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	if (zDelta >= 0)
+	{
+		gldisplay.executeScaleOperation(-0.1);
+	}
+	else
+	{
+		gldisplay.executeScaleOperation(0.1);
+	}
+	OnPaint();
+
+	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+
+void Simulation::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	if (midButtonState)
+	{
+		if (ctrlKeyState)
+		{
+			gldisplay.executeTranslateOperation(point.x, point.y);
+		}
+		else
+		{
+			gldisplay.executeRotateOperation(point.x, point.y);
+		}
+
+		OnPaint();
+	}
+
+	CDialogEx::OnMouseMove(nFlags, point);
+}
+
+
+void Simulation::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	CDialogEx::OnLButtonDown(nFlags, point);
+}
+
+
+void Simulation::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	CDialogEx::OnLButtonUp(nFlags, point);
+}
+
+
+BOOL Simulation::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+
+
+	if (pMsg->message == WM_KEYDOWN)
+	{
+
+		if (pMsg->wParam == VK_CONTROL)//直接用虚码代替就可以响应所指键  
+		{
+			ctrlKeyState = true;
+		}
+
+	}
+
+	if (pMsg->message == WM_KEYUP)
+	{
+
+		if (pMsg->wParam == VK_CONTROL)//直接用虚码代替就可以响应所指键  
+		{
+			ctrlKeyState = false;
+		}
+
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }

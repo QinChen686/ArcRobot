@@ -16,8 +16,8 @@ class ABBSocket : public ProcessLog
 public:
 	int SocketListen();
 	int SocketAccept();
-	int SocketSendPos(vector<vector<char *>>);
-	int SocketScan(vector<vector<char *>>, DWORD* );
+	int SocketSendPos(vector<vector<char *>>, int num, bool flag=true);
+	int SocketScan(vector<vector<char *>>, DWORD*, int);
 	int SocketStop();
 	int SocketSend(char* Data);
 	char* GetCurPos();

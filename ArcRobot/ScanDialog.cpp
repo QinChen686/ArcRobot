@@ -194,7 +194,7 @@ void ScanDialog::OnBnClickedButton2()
 		targetPos[i][3] = T2A(data4);
 	}
 	
-	abbsoc.SocketScan(targetPos, &ScanStartTime);
+	abbsoc.SocketScan(targetPos, &ScanStartTime,targetPos.size());
 
 
 
@@ -299,7 +299,7 @@ void ScanDialog::OnBnClickedButton4()
 	sensorsocket.SocketStart("start");
 	char recvbuf[100];
 	int SubFrequency = 0;
-	while (sensorsocket.RecvLine(recvbuf,100,0) != 0)
+	while (sensorsocket.RecvLine(recvbuf,100,'\n') != 0)
 	{
 		//cout << recvbuf;
 		//ZeroMemory(recvbuf, 100);//清空内存recvbuf
@@ -377,9 +377,9 @@ void ScanDialog::OnBnClickedButton6()
 		//坐标变换得到焊缝位置值
 		Matrix4d EndP;
 		//1.将xyzabc转换成T矩阵形式
-		double alfa = TemRes[3];
-		double beta = TemRes[4];
-		double gama = TemRes[5];
+		double alfa = TemRes[3] / 180 * 3.1415926;
+		double beta = TemRes[4] / 180 * 3.1415926;
+		double gama = TemRes[5] / 180 * 3.1415926;
 		vector<double> temR{ cos(alfa)*cos(beta), cos(alfa)*sin(beta)*sin(gama) - sin(alfa)*cos(gama), cos(alfa)*sin(beta)*cos(gama) + sin(alfa)*sin(gama),
 			sin(alfa)*cos(beta), sin(alfa)*sin(beta)*sin(gama) + cos(alfa)*cos(gama), sin(alfa)*sin(beta)*cos(gama) - cos(alfa)*sin(gama),
 			-sin(beta), cos(beta)*sin(gama), cos(beta)*cos(gama) };
@@ -390,12 +390,14 @@ void ScanDialog::OnBnClickedButton6()
 		EndP(3, 0) = 0; EndP(3, 1) = 0; EndP(3, 2) = 0; EndP(3, 2) = 1;
 
 		//2.利用矩阵相乘得到位置和姿态
-		Matrix4d TemPos(EndP*CalibrationDlg::T);		
-		
+		Matrix4d TemRot(EndP*CalibrationDlg::T);
+		Vector4d SensorDelta;
+		SensorDelta << 0, SensorData[i][2], SensorData[i][3], 1;
+		Vector4d TemPos(EndP*CalibrationDlg::T*SensorDelta);
 		//3.T矩阵转换成xyzabc形式并赋值到fitPos
-		fitPos[numOfFitPos][1] = TemPos(0, 3);
-		fitPos[numOfFitPos][2] = TemPos(1, 3);
-		fitPos[numOfFitPos][3] = TemPos(2, 3);
+		fitPos[numOfFitPos][1] = TemPos(0);
+		fitPos[numOfFitPos][2] = TemPos(1);
+		fitPos[numOfFitPos][3] = TemPos(2);
 
 		Matrix3d t_R;
 		t_R(0, 0) = EndP(0, 0); t_R(0, 1) = EndP(0, 1); t_R(0, 2) = EndP(0, 2);
@@ -414,7 +416,9 @@ void ScanDialog::OnBnClickedButton6()
 		
 	}
 	for (int i = 0; i < numOfFitPos; i++)
-		cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
+		//cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
+		cout << "[" << fitPos[i][1] << ", " << fitPos[i][2] << " " << fitPos[i][3] << "]" << " [" << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
+
 }
 
 CListCtrl ScanDialog::PosList2;
@@ -428,4 +432,3 @@ calWeldLine ScanDialog::calwl;
 DWORD ScanDialog::ScanStartTime;
 DWORD ScanDialog::GetWeldLineTime;
 int ScanDialog::SensorPosCount;
-bool  CalibrationDlg::CalibratedFlag = false;//是否标定的标志

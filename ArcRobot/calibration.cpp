@@ -79,17 +79,35 @@ Matrix4d Calibration::calculateT()
 	T(0, 2) = a(0); T(1, 2) = a(1); T(2, 2) = a(2); T(3, 2) = 0;
 	T(0, 3) = T0(0, 2); T(1, 3) = T0(1, 2); T(2, 3) = T0(2, 2); T(3, 3) = 1;
 	calWeldLine::T = T;
-	cout << "in dlg:" << endl;
+	cout << "in CalibrationDlg.cpp:" << endl;
 	cout << T << endl;
+	//误差分析
+	for (int PointInd=0; PointInd != pointNum; PointInd++)
+	{
+		for (int j = 0; j != 3; j++)
+			for (int k = 0; k != 3; k++)
+				TP(j, k) = caliData[PointInd].R[j][k];
+		TP(0, 3) = caliData[PointInd].EndPos[0];
+		TP(1, 3) = caliData[PointInd].EndPos[1];
+		TP(2, 3) = caliData[PointInd].EndPos[2];
+		TP(3, 0) = 0; TP(3, 1) = 0; TP(3, 2) = 0; TP(3, 3) = 1;
+		Vector4d SensorPos,WorldPos;
+		SensorPos << 0, caliData[PointInd].delta[0], caliData[PointInd].delta[1], 1;
+		WorldPos = TP*T*SensorPos;
+		cout << "error" << PointInd << ": " << WorldPos(0) - caliData[PointInd].pointPos[0]<< " ";
+		cout << WorldPos(1) - caliData[PointInd].pointPos[1] << " ";
+		cout << WorldPos(2) - caliData[PointInd].pointPos[2] << endl;
+	}
 	return T;
 }
 
 
 int Calibration::rpy2rot(CaliStruct &caliStruct)
 {
-	double alfa = caliStruct.rpy[0];
-	double beta = caliStruct.rpy[1];
-	double gama = caliStruct.rpy[2];
+	//传感器传递来的格式为EZ EY EX ,且计算式应该按照该格式计算旋转矩阵rpy2rotm(EZ,EY,EX)
+	double alfa = caliStruct.rpy[0];//EZ
+	double beta = caliStruct.rpy[1];//EY
+	double gama = caliStruct.rpy[2];//EX
 	vector<double> temR{ cos(alfa)*cos(beta), cos(alfa)*sin(beta)*sin(gama) - sin(alfa)*cos(gama), cos(alfa)*sin(beta)*cos(gama) + sin(alfa)*sin(gama),
 		sin(alfa)*cos(beta), sin(alfa)*sin(beta)*sin(gama) + cos(alfa)*cos(gama), sin(alfa)*sin(beta)*cos(gama) - cos(alfa)*sin(gama),
 		-sin(beta), cos(beta)*sin(gama), cos(beta)*cos(gama) };

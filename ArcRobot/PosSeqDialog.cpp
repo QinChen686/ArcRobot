@@ -215,7 +215,8 @@ void PosSeqDialog::OnBnClickedButton3()
 	// TODO: 在此添加控件通知处理程序代码
 	int nHeadNum = PosList.GetItemCount();
 	CString data1, data2, data3, data4;
-	vector<vector<char *>> targetPos(nHeadNum, vector<char *>(4, nullptr));
+	//添加焊接，直线圆弧，速度等选项到target中
+	vector<vector<char *>> targetPos(nHeadNum, vector<char *>(6, nullptr));
 	for (int i = 0; i != nHeadNum; i++)
 	{
 		data1 = PosList.GetItemText(i, 1);
@@ -227,9 +228,11 @@ void PosSeqDialog::OnBnClickedButton3()
 		targetPos[i][1] = T2A(data2);
 		targetPos[i][2] = T2A(data3);
 		targetPos[i][3] = T2A(data4);
+		targetPos[i][4] = "ArcL";
+		targetPos[i][5] = "v10";
 	}
 
-	abbsoc.SocketSendPos(targetPos);
+	abbsoc.SocketSendPos(targetPos,targetPos.size());
 }
 
 

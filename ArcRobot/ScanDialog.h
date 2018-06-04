@@ -45,7 +45,6 @@ private:
 	static ABBSocket abbsoc;
 	static calWeldLine calwl;
 	static UINT RecvAndDisplay(LPVOID lpParam);
-	static void CALLBACK OneShotTimer(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dw1, DWORD dw2);
 	static DWORD ScanStartTime,GetWeldLineTime;
 	static int SensorPosCount;
 	SensorSocket sensorsocket;

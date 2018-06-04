@@ -123,12 +123,17 @@ char* ABBSocket::GetEndPos()
 }
 
 
-//
-int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos) 
+int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos,int num,bool moveToStart) 
 {
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	SocketSend("RecPos");
-	for (int i = 0; i != targetPos.size(); i++)
+	recv(sClient, buf, BUF_SIZE, 0);
+	if(moveToStart)
+		SocketSend("tool0");
+	else
+		SocketSend("tool1");
+
+	for (int i = 0; i != num; i++)
 	{
 		//接收客户端数据  
 	    //原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
@@ -156,6 +161,8 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
 
+
+
 		sprintf_s(sendBuf, "%s", targetPos[i][0]);
 		printf("%s\n", sendBuf);
 		send(sClient, sendBuf, strlen(sendBuf), 0);
@@ -179,6 +186,18 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 		send(sClient, sendBuf, strlen(sendBuf), 0);
 		recv(sClient, buf, BUF_SIZE, 0);
 		cout << buf << endl;
+
+		sprintf_s(sendBuf, "%s", targetPos[i][4]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
+
+		sprintf_s(sendBuf, "%s", targetPos[i][5]);
+		printf("%s\n", sendBuf);
+		send(sClient, sendBuf, strlen(sendBuf), 0);
+		recv(sClient, buf, BUF_SIZE, 0);
+		cout << buf << endl;
 		//sprintf_s(sendBuf,"[%.5f, %.5f, %.5f]", posx, posy, posz);
 
 
@@ -191,20 +210,20 @@ int ABBSocket::SocketSendPos(vector<vector<char *>> targetPos)
 
 	}
 	recv(sClient, buf, BUF_SIZE, 0);
-	cout << "ready?       " << buf << endl;
+	//cout << "ready?       " << buf << endl;
 	sprintf_s(sendBuf, "End");
 	send(sClient, sendBuf, strlen(sendBuf), 0);
 	retVal = recv(sClient, buf, BUF_SIZE, 0);
-	cout << "Last: " << buf << endl;
+	//cout << "Last: " << buf << endl;
 	return 0;
 }
 
-int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime)
+int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime, int num)
 {
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	SocketSend("Scan");
 	*ScanStartTime = timeGetTime();
-	for (int i = 0; i != targetPos.size(); i++)
+	for (int i = 0; i != num; i++)
 	{
 		//接收客户端数据  
 		//原型：int recv(int sockfd,void *buf,int len,unsigned int flags); 
@@ -294,6 +313,8 @@ int ABBSocket::SocketScan(vector<vector<char *>> targetPos, DWORD* ScanStartTime
 	ZeroMemory(buf, BUF_SIZE);//清空内存
 	int rVal=recv(sClient, buf, BUF_SIZE, 0);
 	*rval = rVal;
+	recvTimeout = 0;   //取消超时 2018-3-22修复bug
+	setsockopt(sClient, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvTimeout, sizeof(int));
 	return buf;
 }
 
