@@ -78,6 +78,9 @@ Matrix4d Calibration::calculateT()
 	T(0, 1) = o(0); T(1, 1) = o(1); T(2, 1) = o(2); T(3, 1) = 0;
 	T(0, 2) = a(0); T(1, 2) = a(1); T(2, 2) = a(2); T(3, 2) = 0;
 	T(0, 3) = T0(0, 2); T(1, 3) = T0(1, 2); T(2, 3) = T0(2, 2); T(3, 3) = 1;
+	calWeldLine::T = T;
+	cout << "in dlg:" << endl;
+	cout << T << endl;
 	return T;
 }
 

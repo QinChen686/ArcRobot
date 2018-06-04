@@ -2,6 +2,9 @@
 
 #include "winsock2.h"  
 #pragma comment(lib, "ws2_32.lib")  
+#pragma comment( lib,"winmm.lib" )
+#include <Windows.h>
+#include <Mmsystem.h>
 #include <vector>
 #include "ProcessLog.h"
 #define _WINSOCK_DEPRECATECD_NO_WARNINGS
@@ -14,7 +17,7 @@ public:
 	int SocketListen();
 	int SocketAccept();
 	int SocketSendPos(vector<vector<char *>>);
-	int SocketScan(vector<vector<char *>>);
+	int SocketScan(vector<vector<char *>>, DWORD* );
 	int SocketStop();
 	int SocketSend(char* Data);
 	char* GetCurPos();
@@ -32,3 +35,4 @@ private:
 	char            sendBuf[BUF_SIZE];//返回给客户端得数据  
 	int             retVal;         //返回值  
 };
+

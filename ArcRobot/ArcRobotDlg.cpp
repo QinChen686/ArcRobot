@@ -79,6 +79,7 @@ BEGIN_MESSAGE_MAP(CArcRobotDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON9, &CArcRobotDlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON7, &CArcRobotDlg::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON6, &CArcRobotDlg::OnBnClickedButton6)
+	ON_BN_CLICKED(IDC_BUTTON8, &CArcRobotDlg::OnBnClickedButton8)
 END_MESSAGE_MAP()
 
 
@@ -239,15 +240,12 @@ void CArcRobotDlg::OnBnClickedButton3()
 	char* pos;
 	CString cpos;
 	pos = abbsoc.GetCurPos();
-	//cout << pos << endl;
+	cout << pos << endl;
 	cpos.Format(_T("%s"), CStringW(pos));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-	cout << cpos << endl;
-	//cout << posVec[0] << " " << posVec[1] << " " << posVec[2] << " " << posVec[3] << " " << posVec[4] << " " << posVec[5] << " "  << posVec[6] <<endl;	
+	cout << cpos << endl;	
 	addtext(IDC_EDIT2,cpos);
-
-
 	vector<double> posVec=mathc.str2vec(pos);
-
+	//cout << posVec[0] << " " << posVec[1] << " " << posVec[2] << " " << posVec[3] << " " << posVec[4] << " " << posVec[5] << " "  << posVec[6] <<endl;	
 	for (int i = 0; i != 7; i++)
 	{
 		cpos.Format(_T("%.5lf"), posVec[i]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
@@ -298,4 +296,10 @@ void CArcRobotDlg::OnBnClickedButton6()
 	// 显示更新窗口
 	pDlg->ShowWindow(SW_NORMAL);
 	pDlg->UpdateWindow();
+}
+
+
+void CArcRobotDlg::OnBnClickedButton8()
+{
+	// TODO: 在此添加控件通知处理程序代码
 }

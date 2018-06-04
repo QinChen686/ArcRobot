@@ -9,6 +9,7 @@ MODULE ArcProgram
     VAR string robconfString;
     VAR string extaxString;
     VAR robtarget target_POS;
+    VAR zonedata path0 := [ true, 25, 40, 40, 10, 35, 5 ];
     CONST jointtarget p50:=[[0,0,0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     VAR robtarget Scan_target_POS{100};
     VAR num a;
@@ -23,10 +24,14 @@ MODULE ArcProgram
     VAR num time1;
     VAR robtarget p1;
 
+    VAR num anglex;
+    VAR num angley;
+    VAR num anglez;
+
     PROC main()
         ClkReset myclock;
         SocketCreate socket1;
-        SocketConnect socket1,"192.168.56.1",4999,\Time:=2;
+        SocketConnect socket1,"192.168.125.5",4999,\Time:=2;
 
         WHILE TRUE DO
             SocketReceive socket1,\Str:=CMDString;
@@ -51,6 +56,10 @@ MODULE ArcProgram
         TEST cmd
         CASE "CurPos":
             CurPos;
+        CASE "PointPos":
+            PointPos;
+        CASE "EndPos":
+            EndPos;
         CASE "RecPos":
             RecPos;
         CASE "Scan":
@@ -69,6 +78,22 @@ MODULE ArcProgram
         p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
         PosString:=ValToStr(p1.trans);
         PosString:=PosString+ValToStr(p1.rot);
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+    PROC PointPos()
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        PosString:=ValToStr(p1.trans);
+        SocketSend socket1\Str:=PosString;
+    ENDPROC
+
+    PROC EndPos()
+        p1:=CRobT(\Tool:=tool0\WObj:=wobj0);
+        anglex:=EulerZYX(\X,p1.rot);
+        angley:=EulerZYX(\Y,p1.rot);
+        anglez:=EulerZYX(\Z,p1.rot);
+        PosString:=ValToStr(p1.trans);
+        PosString:=PosString+"["+ValToStr(anglex)+","+ValToStr(angley)+","+ValToStr(anglez)+"]";
         SocketSend socket1\Str:=PosString;
     ENDPROC
 
@@ -108,9 +133,9 @@ MODULE ArcProgram
 
         ConfJ\On;
         CONNECT timeint WITH SendTarget;
-        ITimer 0.3,timeint;
+        ITimer 0.1,timeint;
         FOR i FROM 1 TO a DO
-            MoveJ Scan_target_POS{i},v100,z50,tool0;
+            MoveJ Scan_target_POS{i},v5,path0,tool0;
             ConfJ\Off;
         ENDFOR
         ClkStop myclock;
@@ -124,6 +149,7 @@ MODULE ArcProgram
         SocketSend socket1\Str:="ready";
         SocketReceive socket1\Str:=flagString,\Time:=5;
         SocketSend socket1\Str:="flagString received";
+     
         WHILE flagString="Start" DO
             SocketReceive socket1\Str:=tansString;
             SocketSend socket1\Str:="tansString received";
@@ -138,7 +164,7 @@ MODULE ArcProgram
             convertOk3:=StrToVal(robconfString,target_POS.robconf);
             convertOk4:=StrToVal(extaxString,target_POS.extax);
             IF convertOk1 AND convertOk2 AND convertOk3 AND convertOk4=TRUE then
-                MoveJ target_POS,v100,z50,tool0;
+                MoveJ target_POS,v5,path0,tool0;
                 tansString:="";
                 rotString:="";
                 robconfString:="";
@@ -174,7 +200,13 @@ MODULE ArcProgram
         time1:=ClkRead(myclock,\HighRes);
         PosString:=ValToStr(time1);
         PosString:=PosString+ValToStr(p1.trans);
-        PosString:=PosString+ValToStr(p1.rot);
+        !PosString:=PosString+ValToStr(p1.rot);
+        !anglex := EulerZYX(\X, p1.rot);
+        !angley := EulerZYX(\Y, p1.rot);
+        !anglez := EulerZYX(\Z, p1.rot);
+        PosString:=PosString+"["+ValToStr(EulerZYX(\X, p1.rot))+",";
+        PosString:=PosString+ValToStr(EulerZYX(\Y, p1.rot))+",";
+        PosString:=PosString+ValToStr(EulerZYX(\Z, p1.rot))+"]";
         SocketSend socket1\Str:=PosString;
     ENDTRAP
 

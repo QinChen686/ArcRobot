@@ -40,6 +40,7 @@ ON_BN_CLICKED(IDC_BUTTON2, &PosSeqDialog::OnBnClickedButton2)
 ON_BN_CLICKED(IDC_BUTTON12, &PosSeqDialog::OnBnClickedButton12)
 ON_BN_CLICKED(IDC_BUTTON10, &PosSeqDialog::OnBnClickedButton10)
 ON_BN_CLICKED(IDC_BUTTON3, &PosSeqDialog::OnBnClickedButton3)
+ON_BN_CLICKED(IDC_BUTTON11, &PosSeqDialog::OnBnClickedButton11)
 END_MESSAGE_MAP()
 
 
@@ -58,10 +59,11 @@ BOOL PosSeqDialog::OnInitDialog()
 	PosList.SetExtendedStyle(PosList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 	// 为列表视图控件添加三列 
-	PosList.InsertColumn(0, _T("序号"), LVCFMT_CENTER, rect.Width() / 8, 0);
-	PosList.InsertColumn(1, _T("空间坐标"), LVCFMT_CENTER, rect.Width() / 4, 1);
-	PosList.InsertColumn(2, _T("四元数"), LVCFMT_CENTER, rect.Width() / 4+rect.Width() / 8, 2);
-	PosList.InsertColumn(3, _T("关节状态"), LVCFMT_CENTER, rect.Width() / 4, 3);
+	PosList.InsertColumn(0, _T("序号"), LVCFMT_CENTER, rect.Width() / 10, 0);
+	PosList.InsertColumn(1, _T("空间坐标"), LVCFMT_CENTER, rect.Width() / 5, 1);
+	PosList.InsertColumn(2, _T("四元数"), LVCFMT_CENTER, rect.Width() / 5+rect.Width() / 10, 2);
+	PosList.InsertColumn(3, _T("关节状态"), LVCFMT_CENTER, rect.Width() / 5, 3);
+	PosList.InsertColumn(4, _T("第七轴"), LVCFMT_CENTER, rect.Width() / 5, 4);
 
 	// 在列表视图控件中插入列表项，并设置列表子项文本   
 	//PosList.InsertItem(0, _T("Java"));
@@ -75,7 +77,7 @@ BOOL PosSeqDialog::OnInitDialog()
 
 void PosSeqDialog::OnBnClickedButton1()
 {
-	CString LineNumStr,posStr,qStr,StateStr;
+	CString LineNumStr,posStr,qStr,StateStr,extra;
 	// TODO: 在此添加控件通知处理程序代码
 
 	//判断输入是否有效
@@ -84,6 +86,7 @@ void PosSeqDialog::OnBnClickedButton1()
 	GetDlgItem(IDC_EDIT1)->GetWindowText(posStr);
 	GetDlgItem(IDC_EDIT11)->GetWindowText(qStr);
 	GetDlgItem(IDC_EDIT12)->GetWindowText(StateStr);
+	GetDlgItem(IDC_EDIT28)->GetWindowText(extra);
 
 	int nHeadNum =PosList.GetItemCount();
 
@@ -92,6 +95,7 @@ void PosSeqDialog::OnBnClickedButton1()
 	PosList.SetItemText(nHeadNum, 1, posStr);
 	PosList.SetItemText(nHeadNum, 2, qStr);
 	PosList.SetItemText(nHeadNum, 3, StateStr);
+	PosList.SetItemText(nHeadNum, 4, extra);
 }
 
 
@@ -122,6 +126,7 @@ void PosSeqDialog::OnBnClickedButton12()
 	GetDlgItem(IDC_EDIT1)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT11)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT12)->SetWindowText(_T(""));
+	GetDlgItem(IDC_EDIT28)->SetWindowText(_T(""));
 }
 
 
@@ -158,7 +163,7 @@ void PosSeqDialog::OnBnClickedButton10()
 
 
 		//char* data1,data2,data3;
-		char data1[100] = {0}, data2[100]= {0}, data3[100]= {0};
+		char data1[100] = {0}, data2[100]= {0}, data3[100]= {0}, data4[100]= {0};
 		char* dataChar=content;
 		int i = 0;
 		for (i = 0; *dataChar != ']'; i++, dataChar++)
@@ -174,6 +179,11 @@ void PosSeqDialog::OnBnClickedButton10()
 		for (i = 0; *dataChar != ']'; i++, dataChar++)
 				data3[i] = *dataChar;
 		data3[i] = *dataChar;
+		dataChar+=2;
+
+		for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data4[i] = *dataChar;
+		data4[i] = *dataChar;
 
 		//std::cout << "data1:" << data1 << std::endl;
 		//std::cout << "data2:" << data2 << std::endl;
@@ -181,19 +191,20 @@ void PosSeqDialog::OnBnClickedButton10()
 		//std::cout << std::endl;
 
 
-		CString LineNumStr, posStr, qStr, StateStr;
+		CString LineNumStr, posStr, qStr, StateStr,ExtraStr;
 		int nHeadNum = PosList.GetItemCount();
 
 		LineNumStr.Format(_T("%d"), nHeadNum + 1);
 		posStr.Format(_T("%s"), CStringW(data1));
 		qStr.Format(_T("%s"), CStringW(data2));
 		StateStr.Format(_T("%s"), CStringW(data3));
+		ExtraStr.Format(_T("%s"), CStringW(data4));
 
 		PosList.InsertItem(nHeadNum, LineNumStr);
 		PosList.SetItemText(nHeadNum, 1, posStr);
 		PosList.SetItemText(nHeadNum, 2, qStr);
 		PosList.SetItemText(nHeadNum, 3, StateStr);
-
+		PosList.SetItemText(nHeadNum, 4, ExtraStr);
 
 	}
 }
@@ -203,21 +214,26 @@ void PosSeqDialog::OnBnClickedButton3()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	int nHeadNum = PosList.GetItemCount();
-	CString data1, data2, data3;
-	char *dataChar1, *dataChar2, *dataChar3;
-	char* dataChar4 = "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]";
+	CString data1, data2, data3, data4;
 	vector<vector<char *>> targetPos(nHeadNum, vector<char *>(4, nullptr));
 	for (int i = 0; i != nHeadNum; i++)
 	{
 		data1 = PosList.GetItemText(i, 1);
 		data2 = PosList.GetItemText(i, 2);
 		data3 = PosList.GetItemText(i, 3);
+		data4 = PosList.GetItemText(i, 4);
 		USES_CONVERSION;
 		targetPos[i][0] = T2A(data1);
 		targetPos[i][1] = T2A(data2);
 		targetPos[i][2] = T2A(data3);
-		targetPos[i][3] = dataChar4;
+		targetPos[i][3] = T2A(data4);
 	}
 
 	abbsoc.SocketSendPos(targetPos);
+}
+
+
+void PosSeqDialog::OnBnClickedButton11()
+{
+	// TODO: 在此添加控件通知处理程序代码
 }

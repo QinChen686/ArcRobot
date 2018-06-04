@@ -8,6 +8,7 @@
 
 // CalibrationDlg 对话框
 
+
 class CalibrationDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CalibrationDlg)
@@ -33,9 +34,13 @@ public:
 	Calibration calibration;
 	ABBSocket abbsoc;
 	mathfun mathc;
+	static Matrix4d T;//标定结果
+	static bool CalibratedFlag;//是否标定的标志
 	afx_msg void OnBnClickedButton12();
 	afx_msg void OnBnClickedButton13();
 	afx_msg void OnBnClickedButton10();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
 };
+
+

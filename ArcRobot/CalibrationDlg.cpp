@@ -6,6 +6,7 @@
 #include "CalibrationDlg.h"
 #include "afxdialogex.h"
 
+Matrix4d CalibrationDlg::T;//静态变量声明
 
 // CalibrationDlg 对话框
 
@@ -119,10 +120,11 @@ void CalibrationDlg::OnBnClickedButton12()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	// 从表格中获取数据，然后调用标定算法标定
+	//标定标志置为true
+	CalibratedFlag = true;
 
 	int nHeadNum = clbrtl.GetItemCount();
 	CString data1, data2, data3;
-	char *dataChar1, *dataChar2, *dataChar3;
 	vector<vector<char *>> clbrtDataChar(nHeadNum, vector<char *>(3, nullptr));
 	for (int i = 0; i != nHeadNum; i++)
 	{
@@ -143,9 +145,26 @@ void CalibrationDlg::OnBnClickedButton12()
 		sscanf_s(clbrtDataChar[i][0], "[%lf,%lf,%lf]", &cst[i].pointPos[0], &cst[i].pointPos[1], &cst[i].pointPos[2]);
 		sscanf_s(clbrtDataChar[i][1], "[%lf,%lf,%lf,%lf,%lf,%lf]", &cst[i].EndPos[0], &cst[i].EndPos[1], &cst[i].EndPos[2], &cst[i].rpy[0], &cst[i].rpy[1], &cst[i].rpy[2]);
 		sscanf_s(clbrtDataChar[i][2], "[%lf,%lf]", &cst[i].delta[0], &cst[i].delta[1]);
+		cst[i].rpy[0]=cst[i].rpy[0] / 180 * 3.1415926;//输入文本中可能是角度制
+		cst[i].rpy[1]=cst[i].rpy[1] / 180 * 3.1415926;
+		cst[i].rpy[2]=cst[i].rpy[2] / 180 * 3.1415926;
 		calibration.AddCaliData(cst[i]);
 	}
-	Matrix4d T = calibration.calculateT();
+	T = calibration.calculateT();
+
+	//将最后一次标定的值存入文件中
+	FILE* FileIn;
+	if (fopen_s(&FileIn, "CalibrationResult.txt", "w") != 0)
+		MessageBox(L"没有此文件", L"提示");
+	for (int Trow = 0; Trow != 4; Trow++)
+	{
+		char TStr[100];
+		sprintf_s(TStr, "%lf %lf %lf %lf\n", T(Trow, 0), T(Trow, 1), T(Trow, 2), T(Trow, 3));
+		fputs(TStr, FileIn);
+	}
+	fclose(FileIn);
+
+	//显示到窗口中
 	CString TCstring;
 	TCstring.Format(_T("%.5lf"), T(0, 0));
 	GetDlgItem(IDC_EDIT2)->SetWindowText(TCstring);
@@ -274,7 +293,7 @@ void CalibrationDlg::OnBnClickedButton10()
 	// TODO: 在此添加控件通知处理程序代码
 	// TODO: 在此添加控件通知处理程序代码
 	char* pos;
-	CString cpos;
+	CString cpos;	
 	cout << "test end pos" << endl;
 	pos = abbsoc.GetEndPos();
 	cout << pos << endl;
