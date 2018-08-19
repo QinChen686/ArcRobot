@@ -61,12 +61,26 @@ CArcRobotDlg::CArcRobotDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	CalibrationDlg::CalibratedFlag = false;
-	res0.resize(1000);
-	for (int i = 0; i != 1000; i++)
-		res0[i].resize(10);
-	SensorData0.resize(1000);
-	for (int i = 0; i != 1000; i++)
-		SensorData0[i].resize(4);
+	res0.resize(scanCount);
+	for (int i = 0; i != scanCount; i++)
+	{
+		res0[i].resize(1000);
+		for (int j = 0; j != 1000; j++)
+			res0[i][j].resize(10);
+	}
+
+
+	SensorData0.resize(segCount);
+	for (int i = 0; i != segCount; i++)
+	{
+		SensorData0[i].resize(1000);
+		for (int j = 0; j != 1000; j++)
+			SensorData0[i][j].resize(4);
+	}
+	
+	numOfRes0[0] = 0;
+	numOfRes0[1] = 0;
+	numOfRes0[2] = 0;
 }
 
 void CArcRobotDlg::DoDataExchange(CDataExchange* pDX)
@@ -321,131 +335,162 @@ void CArcRobotDlg::OnBnClickedButton8()
 	//回到原点
 	abbsoc.SetToZero();
 
-//2.机器人运动到扫描起点
-	addtext(IDC_EDIT2, L"STEP2!");
-	FILE* FileOut;
-	if (fopen_s(&FileOut, "MoveToStartPos.txt", "r") != 0)
-		MessageBox(L"没有此文件", L"提示");
-	char content[500];
-	vector<vector<char *>> targetPos(100, vector<char *>(6, nullptr));
-	int targetNum = 0;
-	while (!feof(FileOut))                                   //循环读取每一行，直到文件尾  
+	for (int times = 0; times < scanCount; times++)
 	{
-		fgets(content, 1024, FileOut);                     //将fp所指向的文件一行内容读到strLine缓冲区 
-														   //std::cout << content << std::endl;
+		//用于输出显示次序
+		CString str;
+		str.Format(_T("-------第%d次---------"), times + 1);
+
+		//2.机器人运动到扫描起点
+		addtext(IDC_EDIT2, str+L"STEP2!");
+		FILE* FileOut;
+		char startPosTxt[][30]={ "MoveToStartPos0.txt","MoveToStartPos1.txt","MoveToStartPos2.txt"};
+		if (fopen_s(&FileOut, startPosTxt[times], "r") != 0)
+			MessageBox(L"没有此文件", L"提示");
+		char content[500];
+		vector<vector<char *>> targetPos(100, vector<char *>(6, nullptr));
+		int targetNum = 0;
+		while (!feof(FileOut))                                   //循环读取每一行，直到文件尾  
+		{
+			fgets(content, 1024, FileOut);                     //将fp所指向的文件一行内容读到strLine缓冲区 
+															   //std::cout << content << std::endl;
 
 
-														   //char* data1,data2,data3;
-		char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
-		char* dataChar = content;
-		int i = 0;
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
+															   //char* data1,data2,data3;
+			char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
+			char* dataChar = content;
+			int i = 0;
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data1[i] = *dataChar;
 			data1[i] = *dataChar;
-		data1[i] = *dataChar;
-		dataChar += 2;
+			dataChar += 2;
 
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data2[i] = *dataChar;
 			data2[i] = *dataChar;
-		data2[i] = *dataChar;
-		dataChar += 2;
+			dataChar += 2;
 
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data3[i] = *dataChar;
 			data3[i] = *dataChar;
-		data3[i] = *dataChar;
-		dataChar += 2;
+			dataChar += 2;
 
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data4[i] = *dataChar;
 			data4[i] = *dataChar;
-		data4[i] = *dataChar;
-		targetPos[targetNum][0] = data1;
-		targetPos[targetNum][1] = data2;
-		targetPos[targetNum][2] = data3;
-		targetPos[targetNum][3] = data4;
-		targetPos[targetNum][4] = "MoveL";
-		targetPos[targetNum][5] = "v50";
-		targetNum++;
+			targetPos[targetNum][0] = data1;
+			targetPos[targetNum][1] = data2;
+			targetPos[targetNum][2] = data3;
+			targetPos[targetNum][3] = data4;
+			targetPos[targetNum][4] = "MoveL";
+			targetPos[targetNum][5] = "v50";
+			targetNum++;
+		}
+
+		abbsoc.SocketSendPos(targetPos, targetNum);
+		addtext(IDC_EDIT2, str+L"Have Moved To Scan Start Position!");
+
+
+		//3.开始扫描，通知机器人控制器与传感器进程开始计时。并获取机器人扫描过程位置数据
+		char scanPosText[][30] = { "ScanPosVec0.txt","ScanPosVec0.txt","ScanPosVec0.txt" };
+
+		addtext(IDC_EDIT2, str+L"STEP3!");
+		FILE* FileOut0;
+		if (fopen_s(&FileOut0, scanPosText[times], "r") != 0)
+			MessageBox(L"没有此文件", L"提示");
+
+		targetNum = 0;
+		char content0[500];
+		vector<vector<char *>> targetPos0(100, vector<char *>(4, nullptr));
+		while (!feof(FileOut0))                                   //循环读取每一行，直到文件尾  
+		{
+			fgets(content0, 1024, FileOut0);                     //将fp所指向的文件一行内容读到strLine缓冲区 
+															   //std::cout << content << std::endl;
+
+
+															   //char* data1,data2,data3;
+			char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
+			char* dataChar = content0;
+			int i = 0;
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data1[i] = *dataChar;
+			data1[i] = *dataChar;
+			dataChar += 2;
+
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data2[i] = *dataChar;
+			data2[i] = *dataChar;
+			dataChar += 2;
+
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data3[i] = *dataChar;
+			data3[i] = *dataChar;
+			dataChar += 2;
+
+			for (i = 0; *dataChar != ']'; i++, dataChar++)
+				data4[i] = *dataChar;
+			data4[i] = *dataChar;
+			//std::cout << "data1:" << data1 << std::endl;
+			//std::cout << "data2:" << data2 << std::endl;
+			//std::cout << "data3:" << data3 << std::endl;
+			//std::cout << std::endl;
+
+			targetPos0[targetNum][0] = data1;
+			targetPos0[targetNum][1] = data2;
+			targetPos0[targetNum][2] = data3;
+			targetPos0[targetNum][3] = data4;
+			targetNum++;
+		}
+		fclose(FileOut0);
+		sensorsocket0.SocketStart("start");//给传感器进程发送开始命令
+		recv(sensorsocket0.sClient, sensorsocket0.read_buf, sizeof(sensorsocket0.read_buf), 0);//等待传感器启动
+		abbsoc.SocketScan(targetPos0, &ScanStartTime0, targetNum);//位置发送完成立即开始计时
+		addtext(IDC_EDIT2, str+L"Start Scanning!");
+
+		//开始读取机器人位置数据
+		char* pos;
+		int rval;
+		pos = abbsoc.SocketPosRecv(&rval);
+		while (rval != -1)
+		{
+			sscanf_s(pos, "%lf[%lf,%lf,%lf][%lf,%lf,%lf]", &res0[times][numOfRes0[times]][0], &res0[times][numOfRes0[times]][1], &res0[times][numOfRes0[times]][2], &res0[times][numOfRes0[times]][3], &res0[times][numOfRes0[times]][4], &res0[times][numOfRes0[times]][5], &res0[times][numOfRes0[times]][6]);
+			//cout << "controller time:" << res[numOfRes][0] << endl;
+			//calwl.calWeldLinePos(res[numOfRes], RealPos[numOfRes]);
+			numOfRes0[times]++;
+			pos = abbsoc.SocketPosRecv(&rval);
+		}
+
 	}
 
-	abbsoc.SocketSendPos(targetPos,targetNum);
-	addtext(IDC_EDIT2, L"Have Moved To Scan Start Position!");
-
-
-//3.开始扫描，通知机器人控制器与传感器进程开始计时。并获取机器人扫描过程位置数据
-	addtext(IDC_EDIT2, L"STEP3!");
-	FILE* FileOut0;
-	if (fopen_s(&FileOut0, "ScanPosVec.txt", "r") != 0)
-		MessageBox(L"没有此文件", L"提示");
-	
-	targetNum = 0;
-	char content0[500];
-	vector<vector<char *>> targetPos0(100, vector<char *>(4, nullptr));
-	while (!feof(FileOut0))                                   //循环读取每一行，直到文件尾  
-	{
-		fgets(content0, 1024, FileOut0);                     //将fp所指向的文件一行内容读到strLine缓冲区 
-														   //std::cout << content << std::endl;
-
-
-														   //char* data1,data2,data3;
-		char data1[100] = { 0 }, data2[100] = { 0 }, data3[100] = { 0 }, data4[100] = { 0 };
-		char* dataChar = content0;
-		int i = 0;
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
-			data1[i] = *dataChar;
-		data1[i] = *dataChar;
-		dataChar += 2;
-
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
-			data2[i] = *dataChar;
-		data2[i] = *dataChar;
-		dataChar += 2;
-
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
-			data3[i] = *dataChar;
-		data3[i] = *dataChar;
-		dataChar += 2;
-
-		for (i = 0; *dataChar != ']'; i++, dataChar++)
-			data4[i] = *dataChar;
-		data4[i] = *dataChar;
-		//std::cout << "data1:" << data1 << std::endl;
-		//std::cout << "data2:" << data2 << std::endl;
-		//std::cout << "data3:" << data3 << std::endl;
-		//std::cout << std::endl;
-
-		targetPos0[targetNum][0] = data1;
-		targetPos0[targetNum][1] = data2;
-		targetPos0[targetNum][2] = data3;
-		targetPos0[targetNum][3] = data4;
-		targetNum++;
-	}
-	fclose(FileOut0);
-	sensorsocket0.SocketStart("start");//给传感器进程发送开始命令
-	recv(sensorsocket0.sClient, sensorsocket0.read_buf, sizeof(sensorsocket0.read_buf), 0);//给传感器进程发送开始命令
-	abbsoc.SocketScan(targetPos0, &ScanStartTime0, targetNum);//位置发送完成立即开始计时
-	addtext(IDC_EDIT2, L"Start Scanning!");
-	//开始读取机器人位置数据
-	CWinThread* mythread = AfxBeginThread(RecvRobotPos, NULL, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-	
 //4.传感器处理得到焊缝位置，发送焊缝相对于传感器位置数据到主控制进程
 	addtext(IDC_EDIT2, L"STEP4!");
 	addtext(IDC_EDIT2, L"Waitting for Sensor Data Comming!");
 	char recvbuf[100];
 	int SubFrequency = 0;
-	numOfSensorData0 = 0;
-	while (sensorsocket0.RecvLine(recvbuf, 100, 0) != 0)
+	int th = 0;
+	numOfSensorData0[0] = 0;numOfSensorData0[1] = 0;numOfSensorData0[2] = 0;
+
+	//Recvbuf有问题 18/8/13
+
+	while (sensorsocket0.RecvLine(recvbuf, 100, '\n') != 0)
 	{
 		cout << recvbuf;
 		//ZeroMemory(recvbuf, 100);//清空内存recvbuf
-
-		//转换收到的传感器数据，并存入vector中
+		if (charEqual(recvbuf,"next\r\n"))
+		{
+			SubFrequency = 0;
+			th++;
+			continue;
+		}
 		if (SubFrequency % 10 == 0)
 		{
 			//cout << SubFrequency << endl;
 			//sscanf_s 严格按照格式来即可
-			sscanf_s(recvbuf, "(%lf)x:%lf, y:%lf, z:%lf", &SensorData0[numOfSensorData0][0], &SensorData0[numOfSensorData0][1], &SensorData0[numOfSensorData0][2], &SensorData0[numOfSensorData0][3]);
-			numOfSensorData0++;
+			sscanf_s(recvbuf, "(%lf)x:%lf, y:%lf, z:%lf", &SensorData0[th][numOfSensorData0[th]][0], &SensorData0[th][numOfSensorData0[th]][1], &SensorData0[th][numOfSensorData0[th]][2], &SensorData0[th][numOfSensorData0[th]][3]);
+			numOfSensorData0[th]++;
 		}
-		SubFrequency++;
+		//转换收到的传感器数据，并存入vector中
+
 	}
 	sensorsocket0.closeSocket();
 	addtext(IDC_EDIT2, L"SensorData Received!");
@@ -456,6 +501,7 @@ void CArcRobotDlg::OnBnClickedButton8()
 //5.通过传感器数据和机器人位置数据计算得到焊缝相对于世界坐标系位置，以及焊接姿态
 	//如果本次运行之前未标定传感器，采用上一次标定的结果
 	//bool  CalibrationDlg::CalibratedFlag = false;//是否标定的标志
+	double quaternion[][4] = { { 0.01074,0.36312,0.80240,-0.47348 },{ 0.01074,0.36312,0.80240,-0.47348 },{ 0.01074,0.36312,0.80240,-0.47348 },{ 0.01074,0.36312,0.80240,-0.47348} };
 	addtext(IDC_EDIT2, L"STEP5!");
 	if (CalibrationDlg::CalibratedFlag == false)
 	{
@@ -470,160 +516,194 @@ void CArcRobotDlg::OnBnClickedButton8()
 		}
 		fclose(FileOut);
 	}
+	cout << endl;
 	cout << "旋转矩阵" << endl;
 	cout << CalibrationDlg::T << endl;
-	cout << "机器人位置数据：" << endl;
-	for (int i = 0; i < numOfRes0; i++)
-		cout << "time: " << res0[i][0] << "s  " << res0[i][1] << " " << res0[i][2] << " " << res0[i][3] << " " << res0[i][4] << " " << res0[i][5] << " " << res0[i][6] << " " << res0[i][7] << endl;
-	cout << "传感器数据：" << endl;
-	for (int i = 0; i < numOfSensorData0; i++)
-		cout << "time: " << SensorData0[i][1] << "s  " << SensorData0[i][2] << " " << SensorData0[i][3] << endl;
+
+	for (int times = 0; times != segCount; times++)
+	{
+		cout << "第" << times << "次扫描" << endl;
+		cout << "机器人位置数据：" << endl;
+		for (int i = 0; i < numOfRes0[match[times]]; i++)
+			cout << "time: " << res0[match[times]][i][0] << "s  " << res0[match[times]][i][1] << " " << res0[match[times]][i][2] << " " << res0[match[times]][i][3] << " " << res0[match[times]][i][4] << " " << res0[match[times]][i][5] << " " << res0[match[times]][i][6] << " " << res0[match[times]][i][7] << endl;
+		cout << "传感器数据：" << endl;
+		for (int i = 0; i < numOfSensorData0[times]; i++)
+			cout << "time: " << SensorData0[times][i][1] << "s  " << SensorData0[times][i][2] << " " << SensorData0[times][i][3] << endl;
+	}
+
 
 	//找到焊缝对应时刻机器人位姿，采用线性拟合得到
-	vector<vector<double>> fitPos(numOfSensorData0, vector<double>(8, 0.0));
-	int numOfFitPos = 0, j = 1;
-	double timeStart = res0[0][0];
-	for (int i = 0; i != numOfSensorData0; i++)
-	{//numOfSensorData0 - i - 1
-		fitPos[numOfFitPos][0] = SensorData0[i][1];//发送过来的传感器位置值的时间是逆序的
-		while (fitPos[numOfFitPos][0] > timeStart && j < numOfRes0)
+	vector<vector<vector<double>>> fitPos;
+	fitPos.resize(segCount);
+	int numOfFitPos[segCount] = { 0 };
+	for (int times = 0; times != segCount; times++)
+	{
+		fitPos[times].resize(numOfSensorData0[times], vector<double>(8, 0.0));
+		int j = 1;
+		double timeStart = res0[match[times]][0][0];
+		for (int i = 0; i != numOfSensorData0[times]; i++)
 		{
-			timeStart = res0[j++][0];
+			//numOfSensorData0 - i - 1
+			//如果当前传感器时间小于机器人第一个时间戳，则继续下去都将小于所以直接break
+			if (SensorData0[times][i][1]<res0[match[times]][0][0])
+				break;
+			//如果当前传感器时间大于机器人最后一个时间戳，则continue
+			if (SensorData0[times][i][1] >= res0[match[times]][numOfRes0[times] - 1][0])
+				continue;
+
+			fitPos[times][numOfFitPos[times]][0] = SensorData0[times][i][1];//发送过来的传感器位置值的时间是逆序的
+			while (fitPos[times][numOfFitPos[times]][0] > timeStart && j < numOfRes0[times])
+			{
+				timeStart = res0[match[times]][j++][0];
+			}
+
+			//对于角度这样插值可能会出错    2018/8/12
+
+
+			vector<double> TemRes(6, 0.0);
+			for (int ind = 0; ind != 6; ind++)
+				TemRes[ind] = (fitPos[times][numOfFitPos[times]][0] - res0[match[times]][j - 2][0]) / (res0[match[times]][j - 1][0] - res0[match[times]][j - 2][0])*(res0[match[times]][j - 1][ind + 1] - res0[match[times]][j - 2][ind + 1]) + res0[match[times]][j - 2][ind + 1];
+
+			//坐标变换得到焊缝位置值
+			Matrix4d EndP;
+			//1.将xyzabc转换成T矩阵形式
+			double alfa = TemRes[3] / 180 * 3.1415926;
+			double beta = TemRes[4] / 180 * 3.1415926;
+			double gama = TemRes[5] / 180 * 3.1415926;
+			vector<double> temR{ cos(alfa)*cos(beta), cos(alfa)*sin(beta)*sin(gama) - sin(alfa)*cos(gama), cos(alfa)*sin(beta)*cos(gama) + sin(alfa)*sin(gama),
+				sin(alfa)*cos(beta), sin(alfa)*sin(beta)*sin(gama) + cos(alfa)*cos(gama), sin(alfa)*sin(beta)*cos(gama) - cos(alfa)*sin(gama),
+				-sin(beta), cos(beta)*sin(gama), cos(beta)*cos(gama) };
+			for (int Trow = 0; Trow != 3; Trow++)
+				for (int Tcol = 0; Tcol != 3; Tcol++)
+					EndP(Trow, Tcol) = temR[Trow * 3 + Tcol];
+			EndP(0, 3) = TemRes[0]; EndP(1, 3) = TemRes[1]; EndP(2, 3) = TemRes[2];
+			EndP(3, 0) = 0; EndP(3, 1) = 0; EndP(3, 2) = 0; EndP(3, 2) = 1;
+
+			//2.利用矩阵相乘得到位置和姿态
+			Matrix4d TemRot(EndP*CalibrationDlg::T);
+			Vector4d SensorDelta;
+			SensorDelta << 0, SensorData0[times][i][2], SensorData0[times][i][3], 1;
+			Vector4d TemPos(EndP*CalibrationDlg::T*SensorDelta);
+			//3.T矩阵转换成xyzabc形式并赋值到fitPos
+			fitPos[times][numOfFitPos[times]][1] = TemPos(0);
+			fitPos[times][numOfFitPos[times]][2] = TemPos(1);
+			fitPos[times][numOfFitPos[times]][3] = TemPos(2);
+
+			Matrix3d t_R;
+			t_R(0, 0) = EndP(0, 0); t_R(0, 1) = EndP(0, 1); t_R(0, 2) = EndP(0, 2);
+			t_R(1, 0) = EndP(1, 0); t_R(1, 1) = EndP(1, 1); t_R(1, 2) = EndP(1, 2);
+			t_R(2, 0) = EndP(2, 0); t_R(2, 1) = EndP(2, 1); t_R(2, 2) = EndP(2, 2);
+			Quaterniond Q3(t_R);
+			//fitPos[numOfFitPos][4] = Q3.coeffs()(0);
+			//fitPos[numOfFitPos][5] = Q3.coeffs()(1);
+			//fitPos[numOfFitPos][6] = Q3.coeffs()(2);
+			//fitPos[numOfFitPos][7] = Q3.coeffs()(3);
+			//目前没有计算焊接姿态，先采用固定姿态 quat=[0.01074,-0.36312,0.80240,-0.47348]
+			fitPos[times][numOfFitPos[times]][4] = quaternion[times][0];
+			fitPos[times][numOfFitPos[times]][5] = quaternion[times][1];
+			fitPos[times][numOfFitPos[times]][6] = quaternion[times][2];
+			fitPos[times][numOfFitPos[times]][7] = quaternion[times][3];
+			//cout << "t_R: " << t_R << endl;
+			//cout << "Quaternion3: " << endl << Q3.coeffs() << endl;
+
+			//计算下一个焊缝点
+			numOfFitPos[times]++;
+
 		}
-		if (fitPos[numOfFitPos][0]<res0[0][0])
-			continue;
-		if (fitPos[numOfFitPos][0] >= res0[numOfRes0 - 1][0])
-			break;
-		vector<double> TemRes(6, 0.0);
-		for (int ind = 0; ind != 6; ind++)
-			TemRes[ind] = (fitPos[numOfFitPos][0] - res0[j - 2][0]) / (res0[j - 1][0] - res0[j - 2][0])*(res0[j - 1][ind + 1] - res0[j - 2][ind + 1]) + res0[j - 2][ind + 1];
-
-		//坐标变换得到焊缝位置值
-		Matrix4d EndP;
-		//1.将xyzabc转换成T矩阵形式
-		double alfa = TemRes[3] / 180 * 3.1415926;
-		double beta = TemRes[4] / 180 * 3.1415926;
-		double gama = TemRes[5] / 180 * 3.1415926;
-		vector<double> temR{ cos(alfa)*cos(beta), cos(alfa)*sin(beta)*sin(gama) - sin(alfa)*cos(gama), cos(alfa)*sin(beta)*cos(gama) + sin(alfa)*sin(gama),
-			sin(alfa)*cos(beta), sin(alfa)*sin(beta)*sin(gama) + cos(alfa)*cos(gama), sin(alfa)*sin(beta)*cos(gama) - cos(alfa)*sin(gama),
-			-sin(beta), cos(beta)*sin(gama), cos(beta)*cos(gama) };
-		for (int Trow = 0; Trow != 3; Trow++)
-			for (int Tcol = 0; Tcol != 3; Tcol++)
-				EndP(Trow, Tcol) = temR[Trow * 3 + Tcol];
-		EndP(0, 3) = TemRes[0]; EndP(1, 3) = TemRes[1]; EndP(2, 3) = TemRes[2];
-		EndP(3, 0) = 0; EndP(3, 1) = 0; EndP(3, 2) = 0; EndP(3, 2) = 1;
-
-		//2.利用矩阵相乘得到位置和姿态
-		Matrix4d TemRot(EndP*CalibrationDlg::T);
-		Vector4d SensorDelta;
-		SensorDelta << 0, SensorData0[i][2], SensorData0[i][3], 1;
-		Vector4d TemPos(EndP*CalibrationDlg::T*SensorDelta);
-		//3.T矩阵转换成xyzabc形式并赋值到fitPos
-		fitPos[numOfFitPos][1] = TemPos(0);
-		fitPos[numOfFitPos][2] = TemPos(1);
-		fitPos[numOfFitPos][3] = TemPos(2);
-
-		Matrix3d t_R;
-		t_R(0, 0) = EndP(0, 0); t_R(0, 1) = EndP(0, 1); t_R(0, 2) = EndP(0, 2);
-		t_R(1, 0) = EndP(1, 0); t_R(1, 1) = EndP(1, 1); t_R(1, 2) = EndP(1, 2);
-		t_R(2, 0) = EndP(2, 0); t_R(2, 1) = EndP(2, 1); t_R(2, 2) = EndP(2, 2);
-		Quaterniond Q3(t_R);
-		//fitPos[numOfFitPos][4] = Q3.coeffs()(0);
-		//fitPos[numOfFitPos][5] = Q3.coeffs()(1);
-		//fitPos[numOfFitPos][6] = Q3.coeffs()(2);
-		//fitPos[numOfFitPos][7] = Q3.coeffs()(3);
-		//目前没有计算焊接姿态，先采用固定姿态 quat=[0.01074,-0.36312,0.80240,-0.47348]
-		fitPos[numOfFitPos][4] = 0.01074;
-		fitPos[numOfFitPos][5] = 0.36312;
-		fitPos[numOfFitPos][6] = 0.80240;
-		fitPos[numOfFitPos][7] = -0.47348;
-		//cout << "t_R: " << t_R << endl;
-		//cout << "Quaternion3: " << endl << Q3.coeffs() << endl;
-
-		//计算下一个焊缝点
-		numOfFitPos++;
-
+		addtext(IDC_EDIT2, L"Finished caculating real position!");
+		cout << "------------第" << times << "次焊接序列" << endl;
+		for (int i = 0; i < numOfFitPos[times]; i++)
+			//cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
+			cout << "[" << fitPos[times][i][1] << ", " << fitPos[times][i][2] << " " << fitPos[times][i][3] << "]" << " [" << fitPos[times][i][4] << " " << fitPos[times][i][5] << " " << fitPos[times][i][6] << " " << fitPos[times][i][7] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
 	}
-	addtext(IDC_EDIT2, L"Finished caculating real position!");
-	for (int i = 0; i < numOfFitPos; i++)
-		//cout << "time: " << fitPos[i][0] << "s  " << fitPos[i][1] << " " << fitPos[i][2] << " " << fitPos[i][3] << " " << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][6]<< endl;
-		cout << "[" << fitPos[i][1] << ", " << fitPos[i][2] << " " << fitPos[i][3] << "]" << " [" << fitPos[i][4] << " " << fitPos[i][5] << " " << fitPos[i][6] << " " << fitPos[i][7] << "]" << "[0, 0, 0, 0] [9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]" << endl;
+
+
 
 
 	//6.发送位置使机器人运动
-	addtext(IDC_EDIT2, L"STEP6!");
-	vector<vector<char *>> targetPos1(numOfFitPos/5 + 2, vector<char *>(6, nullptr));
-	for (int i = 0; i != numOfFitPos / 5 + 2; i++)
+	char startPos[][6][50] = {
+		{ "[343.32,-632.11,828.00]","[0.01074,0.36312,0.80240,-0.47348]","[-1,-1,0,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]","MoveL","v50" } ,
+		{ "[343.32,-632.11,828.00]","[0.01074,0.36312,0.80240,-0.47348]","[-1,-1,0,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]","MoveL","v50" } ,
+		{ "[343.32,-632.11,828.00]","[0.01074,0.36312,0.80240,-0.47348]","[-1,-1,0,0]","[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]","MoveL","v50" } 
+	};
+
+	for (int times = 0; times != segCount; times++)
 	{
-		for(int j=0;j!=6;j++)
-		{	
-			char *fitStr=new char[200];
-			targetPos1[i][j] = fitStr;
+		CString str2;
+		str2.Format(_T("-------第%d次---------"), times + 1);
+		addtext(IDC_EDIT2, str2+L"STEP6!");
+		vector<vector<char *>> targetPos1(numOfFitPos[times]/5 + 2, vector<char *>(6, nullptr));
+		for (int i = 0; i != numOfFitPos[times] / 5 + 2; i++)
+		{
+			for(int j=0;j!=6;j++)
+			{	
+				char *fitStr=new char[200];
+				targetPos1[i][j] = fitStr;
+			}
+	
 		}
+		//[731.5, 650.5, 533.4][0.00640, -0.13130, 0.98885, 0.06989]
+		sprintf_s(targetPos1[0][0],200,  startPos[times][0]);
+		sprintf_s(targetPos1[0][0],200,  startPos[times][0]);
+		sprintf_s(targetPos1[0][1], 200, startPos[times][1]);
+		sprintf_s(targetPos1[0][2], 200, startPos[times][2]);
+		sprintf_s(targetPos1[0][3], 200, startPos[times][3]);
+		sprintf_s(targetPos1[0][4], 200, startPos[times][4]);
+		sprintf_s(targetPos1[0][5], 200, startPos[times][5]);
+		//-0.5422    0.5927 - 0.5956
+		//0.8333    0.2886 - 0.4715
+		//- 0.1076 - 0.7520 - 0.6503
+		// -10 * [-0.5956, -0.4715, -0.6503]
+		//ans =
+		//5.9560    4.7150    6.5030
+		for (int i = 1; i < numOfFitPos[times] /5 + 1; i++)
+		{
+			sprintf_s(targetPos1[i][0], 200, "[%lf, %lf, %lf]", fitPos[times][i * 5-1][1]+ 6, fitPos[times][i * 5 - 1][2]-1, fitPos[times][i * 5 - 1][3]+ 6.503);
+			sprintf_s(targetPos1[i][1], 200, "[%lf, %lf, %lf, %lf]",fitPos[times][i*5 - 1][4],fitPos[times][i*5 - 1][5],fitPos[times][i*5 - 1][6],fitPos[times][i*5 - 1][7]);
+			sprintf_s(targetPos1[i][2], 200, "[-1, -1, 0, 0]");
+			sprintf_s(targetPos1[i][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
+			sprintf_s(targetPos1[i][4], 200, "ArcL");
+			sprintf_s(targetPos1[i][5], 200, "v50");
+		}
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][0], 200, "[%lf, %lf, %lf]", fitPos[times][numOfFitPos[times] - 1][1] + 6, fitPos[times][numOfFitPos[times] - 1][2]-1, fitPos[times][numOfFitPos[times] - 1][3] + 6.503);
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][1], 200, "[%lf, %lf, %lf, %lf]", fitPos[times][numOfFitPos[times] - 1][4], fitPos[times][numOfFitPos[times] - 1][5], fitPos[times][numOfFitPos[times] - 1][6], fitPos[times][numOfFitPos[times] - 1][7]);
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][2], 200, "[-1, -1, 0, 0]");
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][4], 200, "ArcLEnd");
+		sprintf_s(targetPos1[numOfFitPos[times] / 5 + 1][5], 200, "v50");
+
+		sprintf_s(targetPos1[1][4], 200, "MoveJ");
+		sprintf_s(targetPos1[2][4], 200, "ArcLStart");
+
+		addtext(IDC_EDIT2, str2 + L"LET US MOVE!");
+		abbsoc.SocketSendPos(targetPos1, numOfFitPos[times] /5 + 2,false);
+	}
 	
-	}
-	//[731.5, 650.5, 533.4][0.00640, -0.13130, 0.98885, 0.06989]
-	sprintf_s(targetPos1[0][0],200, "[343.32,-632.11,828.00]");
-	sprintf_s(targetPos1[0][1], 200, "[0.01074,0.36312,0.80240,-0.47348]");
-	sprintf_s(targetPos1[0][2], 200, "[-1,-1,0,0]");
-	sprintf_s(targetPos1[0][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
-	sprintf_s(targetPos1[0][4], 200, "MoveL");
-	sprintf_s(targetPos1[0][5], 200, "v50");
-	//-0.5422    0.5927 - 0.5956
-	//0.8333    0.2886 - 0.4715
-	//- 0.1076 - 0.7520 - 0.6503
-	// -10 * [-0.5956, -0.4715, -0.6503]
-	//ans =
-	//5.9560    4.7150    6.5030
-	for (int i = 1; i < numOfFitPos/5 + 1; i++)
-	{
-		sprintf_s(targetPos1[i][0], 200, "[%lf, %lf, %lf]", fitPos[i * 5-1][1]+ 6, fitPos[i * 5 - 1][2]-1, fitPos[i * 5 - 1][3]+ 6.503);
-		sprintf_s(targetPos1[i][1], 200, "[%lf, %lf, %lf, %lf]",fitPos[i*5 - 1][4],fitPos[i*5 - 1][5],fitPos[i*5 - 1][6],fitPos[i*5 - 1][7]);
-		sprintf_s(targetPos1[i][2], 200, "[-1, -1, 0, 0]");
-		sprintf_s(targetPos1[i][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
-		sprintf_s(targetPos1[i][4], 200, "ArcL");
-		sprintf_s(targetPos1[i][5], 200, "v50");
-	}
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][0], 200, "[%lf, %lf, %lf]", fitPos[numOfFitPos - 1][1] + 6, fitPos[numOfFitPos - 1][2]-1, fitPos[numOfFitPos - 1][3] + 6.503);
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][1], 200, "[%lf, %lf, %lf, %lf]", fitPos[numOfFitPos - 1][4], fitPos[numOfFitPos - 1][5], fitPos[numOfFitPos - 1][6], fitPos[numOfFitPos - 1][7]);
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][2], 200, "[-1, -1, 0, 0]");
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][3], 200, "[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]");
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][4], 200, "ArcLEnd");
-	sprintf_s(targetPos1[numOfFitPos / 5 + 1][5], 200, "v50");
-
-	sprintf_s(targetPos1[1][4], 200, "MoveL");
-	sprintf_s(targetPos1[2][4], 200, "ArcLStart");
-
-	addtext(IDC_EDIT2, L"LET US MOVE!");
-	abbsoc.SocketSendPos(targetPos1, numOfFitPos/5 + 2,false);
 	
 }
 
-UINT CArcRobotDlg::RecvRobotPos(LPVOID lpParam)
+bool CArcRobotDlg::charEqual(char* recLine, char* split)
 {
-	char* pos;
-	int rval;
-	numOfRes0 = 0;
-	pos = abbsoc.SocketPosRecv(&rval);
-
-	while (rval != -1)
+	int i = 0;
+	bool res = true;
+	while (recLine[i++] != 0)
 	{
-		sscanf_s(pos, "%lf[%lf,%lf,%lf][%lf,%lf,%lf]", &res0[numOfRes0][0], &res0[numOfRes0][1], &res0[numOfRes0][2], &res0[numOfRes0][3], &res0[numOfRes0][4], &res0[numOfRes0][5], &res0[numOfRes0][6]);
-		//cout << "controller time:" << res[numOfRes][0] << endl;
-		//calwl.calWeldLinePos(res[numOfRes], RealPos[numOfRes]);
-		numOfRes0++;
-		pos = abbsoc.SocketPosRecv(&rval);
+		if (recLine[i] != split[i])
+		{
+			res = false;
+			break;
+		}
 	}
-
-	return 0;
+	return res;
 }
 
+vector<vector<vector<double>>> CArcRobotDlg::res0;//机器人位置带时间戳
+int CArcRobotDlg::numOfRes0[3];//机器人位置计数
 
-vector<vector<double>> CArcRobotDlg::res0;//机器人位置带时间戳
-int CArcRobotDlg::numOfRes0;//机器人位置计数
+vector<vector<vector<double>>> CArcRobotDlg::SensorData0;//传感器焊缝位置0
 
-vector<vector<double>> CArcRobotDlg::SensorData0;//传感器焊缝位置
-int CArcRobotDlg::numOfSensorData0;//传感器焊缝计数
+
+int CArcRobotDlg::numOfSensorData0[3];//传感器焊缝计数
 
 //vector<vector<double>> CArcRobotDlg::RealPos;
 ABBSocket CArcRobotDlg::abbsoc;

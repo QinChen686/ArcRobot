@@ -7,7 +7,7 @@
 #include "ABBSocketCommunication.h"
 #include "mathClass.h"
 #include "SensorCommunicate.h"//one key start include
-
+#include <map>
 
 
 
@@ -57,13 +57,19 @@ public:
 public:
 	SensorSocket sensorsocket0;
 	static ABBSocket abbsoc;
-	static vector<vector<double>> res0;
-	static int numOfRes0;
-	static vector<vector<double>> SensorData0;//(1000, vector<double>(4, 0.0));
-	static int numOfSensorData0;
+	static vector<vector<vector<double>>> res0;
+	static int numOfRes0[3];
+	static vector<vector<vector<double>>> SensorData0;//(1000, vector<double>(4, 0.0));
+	static vector<vector<double>> SensorData1;//(1000, vector<double>(4, 0.0));
+	static vector<vector<double>> SensorData2;//(1000, vector<double>(4, 0.0));
+	static int numOfSensorData0[3];
+
 	static DWORD ScanStartTime0, GetWeldLineTime0;
 	static int SensorPosCount0;
-	static UINT RecvRobotPos(LPVOID lpParam);
+
+private:
+	bool charEqual(char* recLine, char* split);
+	static const int segCount = 3;
+	static const int scanCount = 3;
+	std::map<int, int> match = { {0,0},{1,1},{2,2} };
 };
-
-
